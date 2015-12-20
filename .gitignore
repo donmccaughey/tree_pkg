@@ -1,0 +1,8 @@
+.DS_Store
+.idea
+build
+project.xcworkspace
+tmp
+tree-*.pkg
+xcuserdata
+
