@@ -16,7 +16,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-prefix = /usr
+prefix = ${DESTDIR}/usr/local
 
 CC=gcc
 
@@ -53,11 +53,11 @@ CFLAGS=-ggdb -Wall -DLINUX -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64
 #OBJS+=strverscmp.o
 
 # Uncomment for OS X:
-#CC=cc
-#CFLAGS=-O2 -Wall -fomit-frame-pointer -no-cpp-precomp
-#LDFLAGS=
-#MANDIR=/usr/share/man/man1
-#OBJS+=strverscmp.o
+CC=cc
+CFLAGS=-O2 -Wall -fomit-frame-pointer -no-cpp-precomp
+LDFLAGS=
+MANDIR=${prefix}/share/man/man1
+OBJS+=strverscmp.o
 
 # Uncomment for HP/UX:
 #CC=cc

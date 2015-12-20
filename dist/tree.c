@@ -1247,7 +1247,7 @@ int psize(char *buf, off_t size)
     for (idx=size<usize?0:1; size >= (usize*usize); idx++,size/=usize);
     if (!idx) return sprintf(buf, " %4d", (int)size);
     else return sprintf(buf, ((size/usize) >= 10)? " %3.0f%c" : " %3.1f%c" , (float)size/(float)usize,unit[idx]);
-  } else return sprintf(buf, sizeof(off_t) == sizeof(long long)? " %11lld" : " %9ld", (long long int)size);
+  } else return sprintf(buf, sizeof(off_t) == sizeof(long long)? " %11lld" : " %9lld", (long long int)size);
 }
 
 char Ftype(mode_t mode)

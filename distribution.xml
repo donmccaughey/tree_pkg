@@ -15,6 +15,6 @@
     <choice id="com.ablepear.tree">
         <pkg-ref id="com.ablepear.tree"/>
     </choice>
-    <pkg-ref id="com.ablepear.httperf">tree-{{version}}.pkg</pkg-ref>
+    <pkg-ref id="com.ablepear.tree">tree-{{version}}.pkg</pkg-ref>
 
 </installer-gui-script>

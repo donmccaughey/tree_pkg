@@ -80,7 +80,7 @@ tree-$(version).pkg : \
 		--resources $(TMP)/resources \
 		--package-path $(TMP) \
 		--version $(installer_version) \
-		-sign 'Able Pear Software Incorporated' \
+		--sign 'Able Pear Software Incorporated' \
 		$@
 
 $(TMP)/distribution.xml \
