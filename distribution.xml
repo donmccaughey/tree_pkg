@@ -9,12 +9,12 @@
     <options customize="never"/>
 
     <choices-outline>
-        <line choice="com.ablepear.tree"/>
+        <line choice="cc.donm.pkg.tree"/>
     </choices-outline>
 
-    <choice id="com.ablepear.tree">
-        <pkg-ref id="com.ablepear.tree"/>
+    <choice id="cc.donm.pkg.tree">
+        <pkg-ref id="cc.donm.pkg.tree"/>
     </choice>
-    <pkg-ref id="com.ablepear.tree">tree-{{version}}.pkg</pkg-ref>
+    <pkg-ref id="cc.donm.pkg.tree">tree-{{version}}.pkg</pkg-ref>
 
 </installer-gui-script>

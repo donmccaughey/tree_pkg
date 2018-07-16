@@ -1,7 +1,7 @@
 TMP ?= $(abspath tmp)
 
 version := 1.7.0
-installer_version := 1
+installer_version := 2
 
 .SECONDEXPANSION :
 
@@ -55,7 +55,7 @@ $(TMP)/tree-$(version).pkg : \
 		$(TMP)/install/etc/paths.d/tree.path
 	pkgbuild \
 		--root $(TMP)/install \
-		--identifier com.ablepear.tree \
+		--identifier cc.donm.pkg.tree \
 		--ownership recommended \
 		--version $(version) \
 		$@
@@ -80,7 +80,7 @@ tree-$(version).pkg : \
 		--resources $(TMP)/resources \
 		--package-path $(TMP) \
 		--version $(installer_version) \
-		--sign 'Able Pear Software Incorporated' \
+		--sign 'Donald McCaughey' \
 		$@
 
 $(TMP)/distribution.xml \
