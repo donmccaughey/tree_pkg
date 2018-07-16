@@ -1,7 +1,7 @@
 TMP ?= $(abspath tmp)
 
 version := 1.7.0
-installer_version := 2
+revision := 1
 identity_name := Donald McCaughey
 
 .SECONDEXPANSION :
@@ -80,7 +80,7 @@ tree-$(version).pkg : \
 		--distribution $(TMP)/distribution.xml \
 		--resources $(TMP)/resources \
 		--package-path $(TMP) \
-		--version $(installer_version) \
+		--version $(version)-r$(revision) \
 		--sign '$(identity_name)' \
 		$@
 
