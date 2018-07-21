@@ -86,7 +86,10 @@ tree-$(version).pkg : \
 
 $(TMP)/distribution.xml \
 $(TMP)/resources/welcome.html : $(TMP)/% : % | $$(dir $$@)
-	sed -e s/{{version}}/$(version)/g $< > $@
+	sed \
+		-e s/{{version}}/$(version)/g \
+		-e s/{{revision}}/$(revision)/g \
+		$< > $@
 
 $(TMP)/resources/background.png \
 $(TMP)/resources/license.html : $(TMP)/% : % | $(TMP)/resources
