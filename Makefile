@@ -4,18 +4,6 @@ version := 1.7.0
 revision := 1
 identity_name := Donald McCaughey
 
-date := $(shell date '+%Y-%m-%d')
-macos:=$(shell \
-	system_profiler -detailLevel mini SPSoftwareDataType \
-	| grep 'System Version:' \
-	| awk -F ' ' '{print $$4}' \
-	)
-xcode:=$(shell \
-	system_profiler -detailLevel mini SPDeveloperToolsDataType \
-	| grep 'Version:' \
-	| awk -F ' ' '{print $$2}' \
-	)
-
 
 .SECONDEXPANSION :
 
@@ -37,7 +25,6 @@ src_dist_dirs := $(shell find dist -type d)
 
 dist_files := $(patsubst dist/%, $(TMP)/dist/%, $(src_dist_files))
 dist_dirs := $(patsubst dist/%, $(TMP)/dist/%, $(src_dist_dirs))
-
 
 $(TMP)/install/usr/local/bin/tree \
 $(TMP)/install/user/local/share/man/man1/tree.1 : $(TMP)/installed.stamp.txt
@@ -65,9 +52,10 @@ $(dist_dirs) :
 ##### pkg ##########
 
 $(TMP)/tree-$(version).pkg : \
+		$(TMP)/install/etc/paths.d/tree.path \
 		$(TMP)/install/usr/local/bin/tree \
-		$(TMP)/install/usr/local/share/man/man1/tree.1 \
-		$(TMP)/install/etc/paths.d/tree.path
+		$(TMP)/install/usr/local/bin/uninstall-tree \
+		$(TMP)/install/usr/local/share/man/man1/tree.1
 	pkgbuild \
 		--root $(TMP)/install \
 		--identifier cc.donm.pkg.tree \
@@ -78,11 +66,33 @@ $(TMP)/tree-$(version).pkg : \
 $(TMP)/install/etc/paths.d/tree.path : tree.path | $$(dir $$@)
 	cp $< $@
 
-$(TMP)/install/etc/paths.d :
+$(TMP)/install/usr/local/bin/uninstall-tree : \
+		uninstall-tree \
+		$(TMP)/installed.stamp.txt \
+		| $$(dir $$@)
+	cp $< $@
+	cd $(TMP)/install && find . -type f \! -name .DS_Store | sort >> $@
+	sed -e 's/^\./rm -f /g' -i '' $@
+	chmod a+x $@
+
+$(TMP)/install/etc/paths.d \
+$(TMP)/install/usr/local/bin :
 	mkdir -p $@
 
 
 ##### product ##########
+
+date := $(shell date '+%Y-%m-%d')
+macos:=$(shell \
+	system_profiler -detailLevel mini SPSoftwareDataType \
+	| grep 'System Version:' \
+	| awk -F ' ' '{print $$4}' \
+	)
+xcode:=$(shell \
+	system_profiler -detailLevel mini SPDeveloperToolsDataType \
+	| grep 'Version:' \
+	| awk -F ' ' '{print $$2}' \
+	)
 
 tree-$(version).pkg : \
 		$(TMP)/tree-$(version).pkg \
