@@ -2,7 +2,6 @@ TMP ?= $(abspath tmp)
 
 version := 1.7.0
 revision := 1
-identity_name := Donald McCaughey
 
 
 .SECONDEXPANSION :
@@ -51,7 +50,7 @@ $(dist_dirs) :
 
 ##### pkg ##########
 
-$(TMP)/tree-$(version).pkg : \
+$(TMP)/tree.pkg : \
 		$(TMP)/install/etc/paths.d/tree.path \
 		$(TMP)/install/usr/local/bin/tree \
 		$(TMP)/install/usr/local/bin/uninstall-tree \
@@ -95,7 +94,8 @@ xcode:=$(shell \
 	)
 
 tree-$(version).pkg : \
-		$(TMP)/tree-$(version).pkg \
+		$(TMP)/tree.pkg \
+		$(TMP)/build-report.txt \
 		$(TMP)/distribution.xml \
 		$(TMP)/resources/background.png \
 		$(TMP)/resources/license.html \
@@ -104,9 +104,19 @@ tree-$(version).pkg : \
 		--distribution $(TMP)/distribution.xml \
 		--resources $(TMP)/resources \
 		--package-path $(TMP) \
-		--version $(version)-r$(revision) \
-		--sign '$(identity_name)' \
+		--version v$(version)-r$(revision) \
+		--sign 'Donald McCaughey' \
 		$@
+
+$(TMP)/build-report.txt : tree-$(version).pkg $$(dir $$@)
+	printf 'Build Date: %s\n' "$(date)" > $@
+	printf 'Software Version: %s\n' "$(version)" >> $@
+	printf 'Installer Revision: %s\n' "$(revision)" >> $@
+	printf 'macOS Version: %s\n' "$(macos)" >> $@
+	printf 'Xcode Version: %s\n' "$(xcode)" >> $@
+	printf 'Tag Version: v%s-r%s\n' "$(version)" "$(revision)" >> $@
+	printf 'Release Title: tree %s for macOS rev %s\n' "$(version)" "$(revision)" >> $@
+	printf 'Description: A signed macOS installer package for `tree` %s.\n' "$(version)" >> $@
 
 $(TMP)/distribution.xml \
 $(TMP)/resources/welcome.html : $(TMP)/% : % | $$(dir $$@)

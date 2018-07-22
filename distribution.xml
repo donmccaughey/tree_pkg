@@ -15,6 +15,6 @@
     <choice id="cc.donm.pkg.tree">
         <pkg-ref id="cc.donm.pkg.tree"/>
     </choice>
-    <pkg-ref id="cc.donm.pkg.tree">tree-{{version}}.pkg</pkg-ref>
+    <pkg-ref id="cc.donm.pkg.tree">tree.pkg</pkg-ref>
 
 </installer-gui-script>
