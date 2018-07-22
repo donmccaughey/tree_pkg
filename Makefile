@@ -4,6 +4,13 @@ version := 1.7.0
 revision := 1
 identity_name := Donald McCaughey
 
+date := $(shell date '+%Y-%m-%d')
+macos:=$(shell system_profiler -detailLevel mini SPSoftwareDataType \
+	| grep 'System Version:' | awk -F ' ' '{print $$4}')
+xcode:=$(shell system_profiler -detailLevel mini SPDeveloperToolsDataType \
+	| grep 'Version:' | awk -F ' ' '{print $$2}')
+
+
 .SECONDEXPANSION :
 
 
@@ -87,8 +94,11 @@ tree-$(version).pkg : \
 $(TMP)/distribution.xml \
 $(TMP)/resources/welcome.html : $(TMP)/% : % | $$(dir $$@)
 	sed \
-		-e s/{{version}}/$(version)/g \
+		-e s/{{date}}/$(date)/g \
+		-e s/{{macos}}/$(macos)/g \
 		-e s/{{revision}}/$(revision)/g \
+		-e s/{{version}}/$(version)/g \
+		-e s/{{xcode}}/$(xcode)/g \
 		$< > $@
 
 $(TMP)/resources/background.png \
