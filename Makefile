@@ -5,10 +5,16 @@ revision := 1
 identity_name := Donald McCaughey
 
 date := $(shell date '+%Y-%m-%d')
-macos:=$(shell system_profiler -detailLevel mini SPSoftwareDataType \
-	| grep 'System Version:' | awk -F ' ' '{print $$4}')
-xcode:=$(shell system_profiler -detailLevel mini SPDeveloperToolsDataType \
-	| grep 'Version:' | awk -F ' ' '{print $$2}')
+macos:=$(shell \
+	system_profiler -detailLevel mini SPSoftwareDataType \
+	| grep 'System Version:' \
+	| awk -F ' ' '{print $$4}' \
+	)
+xcode:=$(shell \
+	system_profiler -detailLevel mini SPDeveloperToolsDataType \
+	| grep 'Version:' \
+	| awk -F ' ' '{print $$2}' \
+	)
 
 
 .SECONDEXPANSION :
@@ -20,11 +26,12 @@ all : tree-$(version).pkg
 
 .PHONY : clean
 clean : 
-	-rm -f tree-$(version).pkg
+	-rm -f tree-*.pkg
 	-rm -rf $(TMP)
 
 
 ##### dist ##########
+
 src_dist_files := $(shell find dist -type f \! -name .DS_Store)
 src_dist_dirs := $(shell find dist -type d)
 
@@ -68,7 +75,7 @@ $(TMP)/tree-$(version).pkg : \
 		--version $(version) \
 		$@
 
-$(TMP)/install/etc/paths.d/tree.path : tree.path | $(TMP)/install/etc/paths.d
+$(TMP)/install/etc/paths.d/tree.path : tree.path | $$(dir $$@)
 	cp $< $@
 
 $(TMP)/install/etc/paths.d :
@@ -102,11 +109,10 @@ $(TMP)/resources/welcome.html : $(TMP)/% : % | $$(dir $$@)
 		$< > $@
 
 $(TMP)/resources/background.png \
-$(TMP)/resources/license.html : $(TMP)/% : % | $(TMP)/resources
+$(TMP)/resources/license.html : $(TMP)/% : % | $$(dir $$@)
 	cp $< $@
 
 $(TMP) \
 $(TMP)/resources : 
 	mkdir -p $@
-
 
