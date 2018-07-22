@@ -108,7 +108,7 @@ tree-$(version).pkg : \
 		--sign 'Donald McCaughey' \
 		$@
 
-$(TMP)/build-report.txt : tree-$(version).pkg $$(dir $$@)
+$(TMP)/build-report.txt : | $$(dir $$@)
 	printf 'Build Date: %s\n' "$(date)" > $@
 	printf 'Software Version: %s\n' "$(version)" >> $@
 	printf 'Installer Revision: %s\n' "$(revision)" >> $@
