@@ -2,6 +2,7 @@ TMP ?= $(abspath tmp)
 
 version := 1.8.0
 revision := 1
+archs := arm64 x86_64
 
 
 .SECONDEXPANSION :
@@ -15,6 +16,14 @@ all : tree-$(version).pkg
 clean : 
 	-rm -f tree-*.pkg
 	-rm -rf $(TMP)
+
+
+##### compilation flags ##########
+
+arch_flags = $(patsubst %,-arch %,$(archs))
+
+CFLAGS += $(arch_flags)
+LDFLAGS += $(arch_flags)
 
 
 ##### dist ##########
@@ -37,7 +46,7 @@ $(TMP)/installed.stamp.txt : \
 	date > $@
 
 $(TMP)/dist/tree : $(dist_files)
-	cd $(TMP)/dist && $(MAKE)
+	cd $(TMP)/dist && $(MAKE) CFLAGS='$(CFLAGS)' LDFLAGS='$(LDFLAGS)'
 
 $(dist_files) : $(TMP)/dist/% : dist/% | $$(dir $$@)
 	cp $< $@
@@ -81,6 +90,7 @@ $(TMP)/install/usr/local/bin :
 
 ##### product ##########
 
+arch_list := $(shell printf '%s' "$(archs)" | sed "s/ / and /g")
 date := $(shell date '+%Y-%m-%d')
 macos:=$(shell \
 	system_profiler -detailLevel mini SPSoftwareDataType \
@@ -111,6 +121,7 @@ tree-$(version).pkg : \
 $(TMP)/build-report.txt : | $$(dir $$@)
 	printf 'Build Date: %s\n' "$(date)" > $@
 	printf 'Software Version: %s\n' "$(version)" >> $@
+	printf 'Architectures: %s\n' "$(arch_list)" >> $@
 	printf 'Installer Revision: %s\n' "$(revision)" >> $@
 	printf 'macOS Version: %s\n' "$(macos)" >> $@
 	printf 'Xcode Version: %s\n' "$(xcode)" >> $@
@@ -121,11 +132,12 @@ $(TMP)/build-report.txt : | $$(dir $$@)
 $(TMP)/distribution.xml \
 $(TMP)/resources/welcome.html : $(TMP)/% : % | $$(dir $$@)
 	sed \
-		-e s/{{date}}/$(date)/g \
-		-e s/{{macos}}/$(macos)/g \
-		-e s/{{revision}}/$(revision)/g \
-		-e s/{{version}}/$(version)/g \
-		-e s/{{xcode}}/$(xcode)/g \
+		-e 's/{{arch_list}}/$(arch_list)/g' \
+		-e 's/{{date}}/$(date)/g' \
+		-e 's/{{macos}}/$(macos)/g' \
+		-e 's/{{revision}}/$(revision)/g' \
+		-e 's/{{version}}/$(version)/g' \
+		-e 's/{{xcode}}/$(xcode)/g' \
 		$< > $@
 
 $(TMP)/resources/background.png \

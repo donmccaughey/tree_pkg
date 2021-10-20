@@ -1,8 +1,8 @@
 tree 1.8.0 for macOS
 ====================
 
-This project builds a signed macOS installer package for [`tree`][1], a
-recursive directory listing command. It contains the source distribution for 
+This project builds a signed macOS universal installer package for [`tree`][1], 
+a recursive directory listing command. It contains the source distribution for 
 `tree` 1.8.0.
 
 [1]: http://mama.indstate.edu/users/ice/tree/ "tree"
