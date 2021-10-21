@@ -1,3 +1,4 @@
+APP_SIGNING_ID ?= Developer ID Application: Donald McCaughey
 TMP ?= $(abspath tmp)
 
 version := 1.8.0
@@ -56,6 +57,15 @@ $(TMP)/install \
 $(dist_dirs) :
 	mkdir -p $@
 
+# sign executable
+
+$(TMP)/signed.stamp.txt : $(TMP)/install/usr/local/bin/tree | $$(dir $$@)
+	xcrun codesign \
+		--sign "$(APP_SIGNING_ID)" \
+		--options runtime \
+		$<
+	date > $@
+
 
 ##### pkg ##########
 
@@ -63,7 +73,8 @@ $(TMP)/tree.pkg : \
 		$(TMP)/install/etc/paths.d/tree.path \
 		$(TMP)/install/usr/local/bin/tree \
 		$(TMP)/install/usr/local/bin/uninstall-tree \
-		$(TMP)/install/usr/local/share/man/man1/tree.1
+		$(TMP)/install/usr/local/share/man/man1/tree.1 \
+		$(TMP)/signed.stamp.txt
 	pkgbuild \
 		--root $(TMP)/install \
 		--identifier cc.donm.pkg.tree \
