@@ -35,7 +35,7 @@ dist_files := $(patsubst dist/%, $(TMP)/dist/%, $(src_dist_files))
 dist_dirs := $(patsubst dist/%, $(TMP)/dist/%, $(src_dist_dirs))
 
 $(TMP)/install/usr/local/bin/tree \
-$(TMP)/install/user/local/share/man/man1/tree.1 : $(TMP)/installed.stamp.txt
+$(TMP)/install/usr/local/share/man/man1/tree.1 : $(TMP)/installed.stamp.txt
 	@:
 
 $(TMP)/installed.stamp.txt : \
