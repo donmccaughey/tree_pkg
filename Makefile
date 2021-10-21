@@ -1,4 +1,5 @@
 APP_SIGNING_ID ?= Developer ID Application: Donald McCaughey
+INSTALLER_SIGNING_ID ?= Developer ID Installer: Donald McCaughey
 TMP ?= $(abspath tmp)
 
 version := 1.8.0
@@ -126,7 +127,7 @@ tree-$(version).pkg : \
 		--resources $(TMP)/resources \
 		--package-path $(TMP) \
 		--version v$(version)-r$(revision) \
-		--sign 'Donald McCaughey' \
+		--sign '$(INSTALLER_SIGNING_ID)' \
 		$@
 
 $(TMP)/build-report.txt : | $$(dir $$@)
@@ -137,6 +138,11 @@ $(TMP)/build-report.txt : | $$(dir $$@)
 	printf 'macOS Version: %s\n' "$(macos)" >> $@
 	printf 'Xcode Version: %s\n' "$(xcode)" >> $@
 	printf 'Tag Version: v%s-r%s\n' "$(version)" "$(revision)" >> $@
+	printf 'APP_SIGNING_ID: %s\n' "$(APP_SIGNING_ID)" >> $@
+	printf 'INSTALLER_SIGNING_ID: %s\n' "$(INSTALLER_SIGNING_ID)" >> $@
+	printf 'TMP directory: %s\n' "$(TMP)" >> $@
+	printf 'CFLAGS: %s\n' "$(CFLAGS)" >> $@
+	printf 'LDFLAGS: %s\n' "$(LDFLAGS)" >> $@
 	printf 'Release Title: tree %s for macOS rev %s\n' "$(version)" "$(revision)" >> $@
 	printf 'Description: A signed macOS installer package for `tree` %s.\n' "$(version)" >> $@
 
