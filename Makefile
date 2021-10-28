@@ -25,6 +25,15 @@ clean :
 	-rm -rf $(TMP)
 
 
+.PHONY : check
+check :
+	test "$(shell lipo -archs $(TMP)/install/usr/local/bin/tree)" = "x86_64 arm64"
+	codesign --verify --strict $(TMP)/install/usr/local/bin/tree
+	pkgutil --check-signature tree-$(version).pkg
+	spctl --assess --type install tree-$(version).pkg
+	xcrun stapler validate tree-$(version).pkg
+
+
 ##### compilation flags ##########
 
 arch_flags = $(patsubst %,-arch %,$(archs))
@@ -146,6 +155,7 @@ $(TMP)/build-report.txt : | $$(dir $$@)
 	printf 'Tag Version: v%s-r%s\n' "$(version)" "$(revision)" >> $@
 	printf 'APP_SIGNING_ID: %s\n' "$(APP_SIGNING_ID)" >> $@
 	printf 'INSTALLER_SIGNING_ID: %s\n' "$(INSTALLER_SIGNING_ID)" >> $@
+	printf 'NOTARIZATION_KEYCHAIN_PROFILE: %s\n' "$(NOTARIZATION_KEYCHAIN_PROFILE)" >> $@
 	printf 'TMP directory: %s\n' "$(TMP)" >> $@
 	printf 'CFLAGS: %s\n' "$(CFLAGS)" >> $@
 	printf 'LDFLAGS: %s\n' "$(LDFLAGS)" >> $@
