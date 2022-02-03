@@ -1,5 +1,5 @@
 # $Copyright: $
-# Copyright (c) 1996 - 2018 by Steve Baker
+# Copyright (c) 1996 - 2022 by Steve Baker
 # All Rights reserved
 #
 # This program is free software; you can redistribute it and/or modify
@@ -16,68 +16,66 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-prefix = /usr
+PREFIX=/usr/local
 
 CC=gcc
+INSTALL=install
 
-VERSION=1.8.0
+VERSION=2.0.1
 TREE_DEST=tree
-BINDIR=${prefix}/bin
+#DESTDIR=${PREFIX}/bin
 MAN=tree.1
-MANDIR=${prefix}/man/man1
-OBJS=tree.o unix.o html.o xml.o json.o hash.o color.o file.o
+MANDIR=${PREFIX}/man
+OBJS=tree.o list.o hash.o color.o file.o filter.o info.o unix.o xml.o json.o html.o strverscmp.o
 
 # Uncomment options below for your particular OS:
 
 # Linux defaults:
-#CFLAGS=-ggdb -pedantic -Wall -DLINUX -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64
-#CFLAGS=-O4 -Wall  -DLINUX -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64
+#CFLAGS=-ggdb -pedantic -Wall -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64
+#CFLAGS=-O3 -pedantic -Wall -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64
 #LDFLAGS=-s
 
 # Uncomment for FreeBSD:
+#CC=cc
 #CFLAGS=-O2 -Wall -fomit-frame-pointer
 #LDFLAGS=-s
-#OBJS+=strverscmp.o
 
 # Uncomment for OpenBSD:
 #TREE_DEST=colortree
 #MAN=colortree.1
 #CFLAGS=-O2 -Wall -fomit-frame-pointer
 #LDFLAGS=-s
-#OBJS+=strverscmp.o
 
 # Uncomment for Solaris:
 #CC=cc
 #CFLAGS=-xO0 -v
 #LDFLAGS=
-#OBJS+=strverscmp.o
-#MANDIR=${prefix}/share/man/man1
+#MANDIR=${prefix}/share/man
 
 # Uncomment for Cygwin:
-#CFLAGS=-O2 -Wall -fomit-frame-pointer -DCYGWIN
+#CFLAGS=-O2 -Wall -fomit-frame-pointer
 #LDFLAGS=-s
 #TREE_DEST=tree.exe
-#OBJS+=strverscmp.o
 
 # Uncomment for OS X:
 # It is not allowed to install to /usr/bin on OS X any longer (SIP):
-prefix = ${DESTDIR}/usr/local
 CC=cc
 CFLAGS=-O2 -Wall -fomit-frame-pointer -no-cpp-precomp
 LDFLAGS=
-MANDIR=${prefix}/share/man/man1
-OBJS+=strverscmp.o
+BINDIR=${DESTDIR}/${PREFIX}/bin
+MANDIR=${DESTDIR}/${PREFIX}/share/man
 
 # Uncomment for HP/UX:
+#prefix=/opt
 #CC=cc
-#CFLAGS=-O2 -DAportable -Wall
+# manpage of mbsrtowcs() requires C99 and the two defines
+#CFLAGS=+w -D_XOPEN_SOURCE=500 -D_POSIX_C_SOURCE=200112 -AC99
 #LDFLAGS=
-#OBJS+=strverscmp.o
+#MANDIR=${prefix}/share/man
 
 # Uncomment for OS/2:
 #CFLAGS=-02 -Wall -fomit-frame-pointer -Zomf -Zsmall-conv
 #LDFLAGS=-s -Zomf -Zsmall-conv
-#OBJS+=strverscmp.o
 
 # Uncomment for HP NonStop:
 #prefix = /opt
@@ -85,13 +83,11 @@ OBJS+=strverscmp.o
 #CFLAGS=-Wextensions -WIEEE_float -g -Wnowarn=1506 -D_XOPEN_SOURCE_EXTENDED=1 \
 #	 -Wallow_cplusplus_comments
 #LDFLAGS=
-#OBJS+=strverscmp.o
 
 # AIX
 #CC=cc_r -q64
 #LD=ld -d64
 #LDFLAGS=-lc
-#OBJS+=strverscmp.o
 
 #------------------------------------------------------------
 
@@ -104,22 +100,16 @@ $(OBJS): %.o:	%.c tree.h
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 clean:
-	if [ -x $(TREE_DEST) ]; then rm $(TREE_DEST); fi
-	if [ -f tree.o ]; then rm *.o; fi
-	rm -f *~
+	rm -f $(TREE_DEST) *.o *~
 
 install: tree
-	install -d $(BINDIR)
-	install -d $(MANDIR)
-	if [ -e $(TREE_DEST) ]; then \
-		install $(TREE_DEST) $(BINDIR)/$(TREE_DEST); \
-	fi
-	install doc/$(MAN) $(MANDIR)/$(MAN)
+	$(INSTALL) -d $(BINDIR)
+	$(INSTALL) -d $(MANDIR)/man1
+	$(INSTALL) $(TREE_DEST) $(BINDIR)/$(TREE_DEST); \
+	$(INSTALL) -m 644 doc/$(MAN) $(MANDIR)/man1/$(MAN)
 
 distclean:
-	if [ -f tree.o ]; then rm *.o; fi
-	rm -f *~
-	
+	rm -f *.o *~
 
 dist:	distclean
 	tar zcf ../tree-$(VERSION).tgz -C .. `cat .tarball`
