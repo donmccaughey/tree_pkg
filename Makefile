@@ -159,8 +159,9 @@ $(TMP)/build-report.txt : | $$(dir $$@)
 	printf 'TMP directory: %s\n' "$(TMP)" >> $@
 	printf 'CFLAGS: %s\n' "$(CFLAGS)" >> $@
 	printf 'LDFLAGS: %s\n' "$(LDFLAGS)" >> $@
-	printf 'Release Title: tree %s for macOS rev %s\n' "$(version)" "$(revision)" >> $@
-	printf 'Description: A signed macOS installer package for `tree` %s.\n' "$(version)" >> $@
+	printf 'Tag: v%s-r%s\n' "$(version)" "$(revision)" >> $@
+	printf 'Tag Title: tree %s for macOS rev %s\n' "$(version)" "$(revision)" >> $@
+	printf 'Tag Message: A signed and notarized universal installer package for `tree` %s.\n' "$(version)" >> $@
 
 $(TMP)/distribution.xml \
 $(TMP)/resources/welcome.html : $(TMP)/% : % | $$(dir $$@)
