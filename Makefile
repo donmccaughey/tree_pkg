@@ -148,8 +148,8 @@ tree-$(version).pkg : \
 $(TMP)/build-report.txt : | $$(dir $$@)
 	printf 'Build Date: %s\n' "$(date)" > $@
 	printf 'Software Version: %s\n' "$(version)" >> $@
-	printf 'Architectures: %s\n' "$(arch_list)" >> $@
 	printf 'Installer Revision: %s\n' "$(revision)" >> $@
+	printf 'Architectures: %s\n' "$(arch_list)" >> $@
 	printf 'macOS Version: %s\n' "$(macos)" >> $@
 	printf 'Xcode Version: %s\n' "$(xcode)" >> $@
 	printf 'APP_SIGNING_ID: %s\n' "$(APP_SIGNING_ID)" >> $@
