@@ -31,6 +31,7 @@ clean :
 .PHONY : check
 check :
 	test "$(shell lipo -archs $(TMP)/install/usr/local/bin/tree)" = "x86_64 arm64"
+	test "$(shell ./tools/dylibs --no-sys-libs --count $(TMP)/install/usr/local/bin/tree) dylibs" = "0 dylibs"
 	codesign --verify --strict $(TMP)/install/usr/local/bin/tree
 	pkgutil --check-signature tree-$(ver).pkg
 	spctl --assess --type install tree-$(ver).pkg
