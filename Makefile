@@ -87,12 +87,7 @@ $(TMP)/signed.stamp.txt : $(TMP)/install/usr/local/bin/tree | $$(dir $$@)
 
 ##### pkg ##########
 
-$(TMP)/tree.pkg : \
-		$(TMP)/install/etc/paths.d/tree.path \
-		$(TMP)/install/usr/local/bin/tree \
-		$(TMP)/install/usr/local/bin/uninstall-tree \
-		$(TMP)/install/usr/local/share/man/man1/tree.1 \
-		$(TMP)/signed.stamp.txt
+$(TMP)/tree.pkg : $(TMP)/install/usr/local/bin/uninstall-tree
 	pkgbuild \
 		--root $(TMP)/install \
 		--identifier cc.donm.pkg.tree \
@@ -105,7 +100,10 @@ $(TMP)/install/etc/paths.d/tree.path : tree.path | $$(dir $$@)
 
 $(TMP)/install/usr/local/bin/uninstall-tree : \
 		uninstall-tree \
-		$(TMP)/installed.stamp.txt \
+		$(TMP)/install/etc/paths.d/tree.path \
+		$(TMP)/install/usr/local/bin/tree \
+		$(TMP)/install/usr/local/share/man/man1/tree.1 \
+		$(TMP)/signed.stamp.txt \
 		| $$(dir $$@)
 	cp $< $@
 	cd $(TMP)/install && find . -type f \! -name .DS_Store | sort >> $@
