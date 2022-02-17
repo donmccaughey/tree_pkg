@@ -7,12 +7,15 @@ version := 2.0.1
 revision := 1
 archs := arm64 x86_64
 
+rev := $(if $(patsubst 1,,$(revision)),-r$(revision),)
+ver := $(version)$(rev)
+
 
 .SECONDEXPANSION :
 
 
 .PHONY : signed-package
-signed-package : tree-$(version).pkg
+signed-package : tree-$(ver).pkg
 
 
 .PHONY : notarize
@@ -29,9 +32,9 @@ clean :
 check :
 	test "$(shell lipo -archs $(TMP)/install/usr/local/bin/tree)" = "x86_64 arm64"
 	codesign --verify --strict $(TMP)/install/usr/local/bin/tree
-	pkgutil --check-signature tree-$(version).pkg
-	spctl --assess --type install tree-$(version).pkg
-	xcrun stapler validate tree-$(version).pkg
+	pkgutil --check-signature tree-$(ver).pkg
+	spctl --assess --type install tree-$(ver).pkg
+	xcrun stapler validate tree-$(ver).pkg
 
 
 ##### compilation flags ##########
@@ -129,7 +132,7 @@ xcode:=$(shell \
 	| awk -F ' ' '{print $$2}' \
 	)
 
-tree-$(version).pkg : \
+tree-$(ver).pkg : \
 		$(TMP)/tree.pkg \
 		$(TMP)/build-report.txt \
 		$(TMP)/distribution.xml \
@@ -185,7 +188,7 @@ $(TMP)/resources :
 
 ##### notarization #####
 
-$(TMP)/submit-log.json : tree-$(version).pkg | $$(dir $$@)
+$(TMP)/submit-log.json : tree-$(ver).pkg | $$(dir $$@)
 	xcrun notarytool submit $< \
 		--keychain-profile "$(NOTARIZATION_KEYCHAIN_PROFILE)" \
 		--output-format json \
@@ -204,7 +207,7 @@ $(TMP)/notarized.stamp.txt : $(TMP)/notarization-log.json | $$(dir $$@)
 	test "$$(jq --raw-output '.status' < $<)" = "Accepted"
 	date > $@
 
-$(TMP)/stapled.stamp.txt : tree-$(version).pkg $(TMP)/notarized.stamp.txt
+$(TMP)/stapled.stamp.txt : tree-$(ver).pkg $(TMP)/notarized.stamp.txt
 	xcrun stapler staple $<
 	date > $@
 
