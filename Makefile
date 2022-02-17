@@ -15,11 +15,11 @@ ver := $(version)$(rev)
 
 
 .PHONY : signed-package
-signed-package : tree-$(ver).pkg
+signed-package : $(TMP)/tree-$(ver)-unnotarized.pkg
 
 
 .PHONY : notarize
-notarize : $(TMP)/stapled.stamp.txt
+notarize : tree-$(ver).pkg
 
 
 .PHONY : clean
@@ -124,7 +124,7 @@ xcode:=$(shell \
 	| awk -F ' ' '{print $$2}' \
 	)
 
-tree-$(ver).pkg : \
+$(TMP)/tree-$(ver)-unnotarized.pkg : \
 		$(TMP)/tree.pkg \
 		$(TMP)/build-report.txt \
 		$(TMP)/distribution.xml \
@@ -180,7 +180,7 @@ $(TMP)/resources :
 
 ##### notarization #####
 
-$(TMP)/submit-log.json : tree-$(ver).pkg | $$(dir $$@)
+$(TMP)/submit-log.json : $(TMP)/tree-$(ver)-unnotarized.pkg | $$(dir $$@)
 	xcrun notarytool submit $< \
 		--keychain-profile "$(NOTARIZATION_KEYCHAIN_PROFILE)" \
 		--output-format json \
@@ -199,7 +199,7 @@ $(TMP)/notarized.stamp.txt : $(TMP)/notarization-log.json | $$(dir $$@)
 	test "$$(jq --raw-output '.status' < $<)" = "Accepted"
 	date > $@
 
-$(TMP)/stapled.stamp.txt : tree-$(ver).pkg $(TMP)/notarized.stamp.txt
-	xcrun stapler staple $<
-	date > $@
+tree-$(ver).pkg : $(TMP)/tree-$(ver)-unnotarized.pkg $(TMP)/notarized.stamp.txt
+	cp $< $@
+	xcrun stapler staple $@
 
