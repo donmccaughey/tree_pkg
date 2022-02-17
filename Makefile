@@ -62,6 +62,10 @@ $(TMP)/installed.stamp.txt : \
 				$(TMP)/dist/doc/tree.1 \
 				| $(TMP)/install
 	cd $(TMP)/dist && $(MAKE) DESTDIR=$(TMP)/install install
+	xcrun codesign \
+		--sign "$(APP_SIGNING_ID)" \
+		--options runtime \
+		$(TMP)/install/usr/local/bin/tree
 	date > $@
 
 $(TMP)/dist/tree : $(dist_files)
@@ -74,15 +78,6 @@ $(TMP)/dist \
 $(TMP)/install \
 $(dist_dirs) :
 	mkdir -p $@
-
-# sign executable
-
-$(TMP)/signed.stamp.txt : $(TMP)/install/usr/local/bin/tree | $$(dir $$@)
-	xcrun codesign \
-		--sign "$(APP_SIGNING_ID)" \
-		--options runtime \
-		$<
-	date > $@
 
 
 ##### pkg ##########
@@ -103,7 +98,6 @@ $(TMP)/install/usr/local/bin/uninstall-tree : \
 		$(TMP)/install/etc/paths.d/tree.path \
 		$(TMP)/install/usr/local/bin/tree \
 		$(TMP)/install/usr/local/share/man/man1/tree.1 \
-		$(TMP)/signed.stamp.txt \
 		| $$(dir $$@)
 	cp $< $@
 	cd $(TMP)/install && find . -type f \! -name .DS_Store | sort >> $@
