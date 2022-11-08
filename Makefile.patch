@@ -1,0 +1,51 @@
+--- /Users/donmcc/tmp/tree-2.0.4/Makefile	2022-09-06 06:31:53
++++ dist/Makefile	2022-11-07 21:10:10
+@@ -23,7 +23,7 @@
+ 
+ VERSION=2.0.4
+ TREE_DEST=tree
+-DESTDIR=${PREFIX}/bin
++#DESTDIR=${PREFIX}/bin
+ MAN=tree.1
+ # Probably needs to be ${PREFIX}/share/man for most systems now
+ MANDIR=${PREFIX}/man
+@@ -33,7 +33,7 @@
+ 
+ # Linux defaults:
+ #CFLAGS+=-ggdb -pedantic -Wall -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64
+-CFLAGS+=-O3 -pedantic -Wall -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64
++#CFLAGS+=-O3 -pedantic -Wall -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64
+ #LDFLAGS+=-s
+ 
+ # Uncomment for FreeBSD:
+@@ -60,10 +60,12 @@
+ 
+ # Uncomment for OS X:
+ # It is not allowed to install to /usr/bin on OS X any longer (SIP):
+-#CC=cc
+-#CFLAGS+=-O2 -Wall -fomit-frame-pointer -no-cpp-precomp
+-#LDFLAGS+=
++CC=cc
++CFLAGS+=-O2 -Wall -fomit-frame-pointer -no-cpp-precomp
++LDFLAGS+=
+ #MANDIR=${PREFIX}/share/man
++BINDIR=${DESTDIR}/${PREFIX}/bin
++MANDIR=${DESTDIR}/${PREFIX}/share/man
+ 
+ # Uncomment for HP/UX:
+ #prefix=/opt
+@@ -103,9 +105,12 @@
+ 	rm -f $(TREE_DEST) *.o *~
+ 
+ install: tree
+-	$(INSTALL) -d $(DESTDIR)
++	#$(INSTALL) -d $(DESTDIR)
++	$(INSTALL) -d $(BINDIR)
+ 	$(INSTALL) -d $(MANDIR)/man1
+-	$(INSTALL) $(TREE_DEST) $(DESTDIR)/$(TREE_DEST); \
++	#$(INSTALL) $(TREE_DEST) $(DESTDIR)/$(TREE_DEST); \
++	#$(INSTALL) -m 644 doc/$(MAN) $(MANDIR)/man1/$(MAN)
++	$(INSTALL) $(TREE_DEST) $(BINDIR)/$(TREE_DEST); \
+ 	$(INSTALL) -m 644 doc/$(MAN) $(MANDIR)/man1/$(MAN)
+ 
+ distclean:
