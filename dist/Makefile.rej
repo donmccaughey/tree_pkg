@@ -1,0 +1,9 @@
+@@ -33,7 +33,7 @@
+ 
+ # Linux defaults:
+ #CFLAGS+=-ggdb -pedantic -Wall -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64
+-CFLAGS+=-O3 -pedantic -Wall -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64
++#CFLAGS+=-O3 -pedantic -Wall -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64
+ #LDFLAGS+=-s
+ 
+ # Uncomment for FreeBSD:

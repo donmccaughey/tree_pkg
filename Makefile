@@ -3,7 +3,7 @@ INSTALLER_SIGNING_ID ?= Developer ID Installer: Donald McCaughey
 NOTARIZATION_KEYCHAIN_PROFILE ?= Donald McCaughey
 TMP ?= $(abspath tmp)
 
-version := 2.0.4
+version := 2.1.0
 revision := 1
 archs := arm64 x86_64
 
