@@ -11,9 +11,7 @@ a recursive directory listing command. It contains the source distribution for
 
 A recent version of Xcode and the [`jq`][2] command are needed to build and
 notarize this installer package.  An [Apple Developer][3] account is required
-to generate the credentials needed to sign and notarize.  The current release
-was built and tested on an Apple Silicon Mac with macOS Ventura 13.5.1 and
-Xcode 14.3.1.
+to generate the credentials needed to sign and notarize.
 
 [2]: https://stedolan.github.io/jq/
 [3]: https://developer.apple.com
