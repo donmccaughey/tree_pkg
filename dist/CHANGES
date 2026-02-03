@@ -1,3 +1,135 @@
+Version 2.3.1 (1/31/26)
+  - The "something always slips through" release.
+  - Completely #include guard selinux context output for non-Linux as well as
+    the stddata_fd variable declared outside of an include guard.
+
+Version 2.3.0 (1/30/2026)
+  - Add ACL detection (--acl) and selinux (--selinux) (not tested, no way for
+    me to easily test this, please report problems with it) options for Linux
+    only. This should lead to adding support for other xattr attributes in the
+    future, though I will likely re-work the mechanism to be more generic.
+    Support for extended attributes could be added for other operating systems
+    if patches for them are provided.
+  - Adds --condense option to condense directory "singletons" (i.e. directories
+    that contain exactly a single directory) into a single line of output. This
+    should be useful for project directories displayed with -d and such. Note
+    that the meta-data displayed will only be valid for the first directory
+    component of the path that is displayed. (PowerPlop@github / others)
+  - Adds --compress=# option to compress the indentation lines. Positive values
+    between 1-3, 1 being normal, and 3 being lines fully compressed. Negative
+    values from -1 to -3 being the same as positive values, except the space
+    after each indentation level is not printed.  Values < -3 or > 3 switch to
+    noindent mode.  This also modifies the JSON and XML indentation output
+    instead of being a fixed 2 space indent.
+    There is a possibility that I could modify this function to go in the other
+    direction and allow for even larger indents, so the meaning of # may change.
+  - The above work also resulted in fixing the line drawing for a number of
+    Asian character sets.  Also ANSI-lines (-A) now is essentially
+    --charset=ANSI and uses it's linedraw.
+  - Reworked --gitignore code to properly search up the directory tree for
+    a git root, searching for additional .gitignore files and the git root's
+    .git/info/exclude file.
+  - Fixed --matchdirs to not exclude sub-directories of matched directories.
+    (FloppyDisco@github).  I reworked the -P and -I code considerably while
+    working on this and now -I will match directories (even w/o --matchdirs.)
+    This behavior changes established behavior quite a bit and may have to be
+    modified again.
+  - Handle '.' in --fromfile input properly.  This should have been in there
+    from day one TBH.  It will likely change the expected output, but it should
+    now be correct in my opinion.
+  - Modify gittrim to trim carriage returns for Window borkness.
+  - Fix segmentation fault when attempting to tree a non-existent file with
+    hyperlinks enabled. (Nicolai Dagestad)
+  - Fix broken hyperlink paths where an optional hanging / is present on the
+    directory name given to tree. (Nicolai Dagestad)
+  - Fix possible NULL de-reference in xml.c, exit fillinfo() early if a NULL
+    pointer is past to it. (Ubuntu? - not sure)
+  - Move all flags into a central struct to cut down on namespace pollution,
+    work should continue on this. Remove unused gnu_getcwd() function, moved and
+    added some functionality into a new util.c file and some additional misc
+    code cleanup.
+
+Version 2.2.1 (11/25/2024)
+  - Yet another brown-paper bag release.  I seem to like doing these.
+  - Fix regression where I free a pointer that should not have been freed due
+    to a variable renaming that wasn't completed. (Daniel Li / Landon Bouma)
+  - Put back, in a modified form, HTML href directory path fixing that was
+    removed in 2.1.2. If the "baseHREF" part after the -H begins with a dash
+    (-), the dash is removed and the lead directory name is removed from the
+    href, otherwise it is left as-is.  It can be very difficult to know how to
+    handle the host and directory part given the plethora of protocols and
+    what-not, so hopefully this should give enough control over that to suit
+    most requirements.
+
+Version 2.2.0 (11/24/2024)
+  - Add option --opt-toggle which turns on the ability to toggle options such
+    as -a, -p, etc.  Useful to add to an alias for turning an option off when
+    using said alias. (Christoph Anton Mitterer)
+  - Add --hyperlink option to print OSC 8 terminal hyperlinks for files. Also
+    adds the --scheme and --authority options to modify the schema and hostname/
+    authority of the links. (Nicolai Dagestad)
+    OSC 8 Terminal hyperlinks:
+      https://gist.github.com/egmontkob/eb114294efbcd5adb1944c9f3cb5feda
+  - Maybe finally fix JSON error reporting when unable to open a directory and a
+    full tree is required, such as when using --du. (Alchemyst@github)
+  - Fix small rounding error in human readable size (-h) output, where 9.99K is
+    rounded to 10.0K rather than 10K (Ivan Ivanovich)
+  - Fix the totals report for sizes when --du option is used.  The directory
+    size total was correct, but the final report was an accumulation of all
+    the directory totals rather than just the top most directory total.
+    (Alchemyst@github)
+  - Add .gitignore file to distribution for those wanting that. (Kenta Arai)
+  - Add 'none' as a valid --sort option (i.e. -U).
+  - Add ability to cross compile for Android (freemedom@github)
+  - List charsets again if --charsets is not given an argument.
+  - Allow --help and usage to use ANSI bold and italic if colorization is
+    enabled.
+  - General code cleanups:
+    - Removed unused externs where possible.
+    - Clean up some warnings issued by -Wextra (Kenta Arai)
+    - Update Makefile to allow CC and the CFLAGS -O3 option to be overridden,
+      move CPPFLAGS into their own variable, add -Wstrict-prototypes
+      (David Seifert)
+    - Long over-due move to stdbool.h, removes custom bool type and changes all
+      occurrences of TRUE/FALSE to true/false. (David Seifert / others)  This
+      likely makes C99+ even more of a requirement now. Please let me know if
+      this requires a work-around for your system.
+    - Went ahead and added -Wconversion to the Makefile as well. This required a
+      large number of type conversion fixing which may have unexpected side
+      effects, but should hopefully help with tree safely dealing with absurd
+      sizes/number of things in the future as this promotes using size_t more.
+      This probably needs more work to do properly however.
+    - Apply the const constraint on parameter strings wherever possible.
+
+Version 2.1.3 (07/09/2024)
+  - Mostly a brown-paper bag release to fix the below regression and add a
+    feature I forgot to add.
+  - Fix regression in search() function that broke --fromfile (Florian Ernst)
+    (caused by removing too much code while fixing premature sort for
+    --fromfile)
+  - Allow the -L option to accept its parameter immediately (with no space)
+    instead of requiring it be the next option word. (Trevor Gross)
+
+Version 2.1.2 (07/01/2024)
+  - Fix issue where --gitignore does not think a pattern with a singular
+    terminal '/' (indicating it matches only directories,) is a relative path.
+    (Clinton)
+  - Don't emit the error 'recursive, not followed' if when using -L, the depth
+    would prevent descending anyway. This also fixes up a JSON output error 
+    (missing comma) when this happens. (simonpmind)
+  - Don't prematurely sort files/directories with --from*file. (gitlab @jack6th)
+  - Various seg-faults fixed (Hanqin Guan (The OSLab of Peking University)):
+    - Make doubly sure that there is actually a previous path entry when reading
+      from a tabbed file.
+    - Make sure there is actually a file entity when applying the link info to
+      it when reading fromfile using --fflinks.
+    - Increase space for the path a little in listdir(), just to be sure.
+    - Make sure that there is no topsort (--dirsfirst / --filesfirst) if there
+      is no basesort (-U).
+    - Make sure gittrim() function can handle a null string.
+  - Update email address to steve.baker.llc@gmail.com from ice@mama.indstate.edu
+    which has been permanently disabled.
+
 Version 2.1.1 (05/31/2023)
   - Various spelling corrections.
   - Fix issue where following links while doing JSON output would lead to

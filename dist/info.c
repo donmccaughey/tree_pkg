@@ -1,5 +1,5 @@
 /* $Copyright: $
- * Copyright (c) 1996 - 2023 by Steve Baker (ice@mama.indstate.edu)
+ * Copyright (c) 1996 - 2026 by Steve Baker (steve.baker.llc@gmail.com)
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -38,14 +38,14 @@ struct comment *new_comment(struct pattern *phead, char **line, int lines)
 
   struct comment *com = xmalloc(sizeof(struct comment));
   com->pattern = phead;
-  com->desc = xmalloc(sizeof(char *) * (lines+1));
+  com->desc = xmalloc(sizeof(char *) * (size_t)(lines+1));
   for(i=0; i < lines; i++) com->desc[i] = line[i];
   com->desc[i] = NULL;
   com->next = NULL;
   return com;
 }
 
-struct infofile *new_infofile(char *path, bool checkparents)
+struct infofile *new_infofile(const char *path, bool checkparents)
 {
   struct stat st;
   char buf[PATH_MAX], rpath[PATH_MAX];
@@ -156,7 +156,7 @@ struct infofile *pop_infostack(void)
  * Returns an info pointer if a path matches a pattern.
  * top == 1 if called in a directory with a .info file.
  */
-struct comment *infocheck(char *path, char *name, int top, int isdir)
+struct comment *infocheck(const char *path, const char *name, int top, bool isdir)
 {
   struct infofile *inf = infostack;
   struct comment *com;
@@ -181,7 +181,7 @@ struct comment *infocheck(char *path, char *name, int top, int isdir)
   return NULL;
 }
 
-void printcomment(int line, int lines, char *s)
+void printcomment(size_t line, size_t lines, char *s)
 {
   if (lines == 1) fprintf(outfile, "%s ", linedraw->csingle);
   else {

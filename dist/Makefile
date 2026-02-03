@@ -1,5 +1,5 @@
 # $Copyright: $
-# Copyright (c) 1996 - 2023 by Steve Baker
+# Copyright (c) 1996 - 2026 by Steve Baker (steve.baker.llc@gmail.com)
 # All Rights reserved
 #
 # This program is free software; you can redistribute it and/or modify
@@ -18,33 +18,40 @@
 
 PREFIX=/usr/local
 
-CC=gcc
-INSTALL=install
 
-VERSION=2.1.1
+CC ?= gcc
+INSTALL ?= install
+
+VERSION=2.3.1
 TREE_DEST=tree
 #DESTDIR=${PREFIX}/bin
 MAN=tree.1
 # Probably needs to be ${PREFIX}/share/man for most systems now
-MANDIR=${PREFIX}/man
-OBJS=tree.o list.o hash.o color.o file.o filter.o info.o unix.o xml.o json.o html.o strverscmp.o
+#MANDIR=${PREFIX}/man
+OBJS=color.o file.o filter.o hash.o html.o info.o json.o list.o tree.o unix.o \
+     util.o xml.o strverscmp.o
 
 # Uncomment options below for your particular OS:
 
 # Linux defaults:
-#CFLAGS+=-ggdb -std=c11 -pedantic -Wall -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64
-#CFLAGS+=-O3 -std=c11 -pedantic -Wall -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64
-#LDFLAGS+=-s
+#LDFLAGS?=-s
+#CFLAGS?=-ggdb
+#CFLAGS?=-O3
+#CFLAGS+=-std=c11 -Wpedantic -Wall -Wextra -Wstrict-prototypes -Wshadow -Wconversion
+# _LARGEFILE64_SOURCE may be considered obsolete
+#CPPFLAGS+=-DLARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64
 
 # Uncomment for FreeBSD:
 #CC=cc
-#CFLAGS+=-O2 -Wall -fomit-frame-pointer
+#CFLAGS?=-O2
+#CFLAGS+=-Wall -fomit-frame-pointer
 #LDFLAGS+=-s
 
 # Uncomment for OpenBSD:
 #TREE_DEST=colortree
 #MAN=colortree.1
-#CFLAGS+=-O2 -Wall -fomit-frame-pointer
+#CFLAGS?=-O2
+#CFLAGS+=-Wall -fomit-frame-pointer
 #LDFLAGS+=-s
 
 # Uncomment for Solaris:
@@ -54,29 +61,33 @@ OBJS=tree.o list.o hash.o color.o file.o filter.o info.o unix.o xml.o json.o htm
 #MANDIR=${prefix}/share/man
 
 # Uncomment for Cygwin:
-#CFLAGS+=-O2 -Wall -fomit-frame-pointer
+#CFLAGS?=-O2
+#CFLAGS+=-Wall -fomit-frame-pointer
 #LDFLAGS+=-s
 #TREE_DEST=tree.exe
 
-# Uncomment for OS X:
-# It is not allowed to install to /usr/bin on OS X any longer (SIP):
-CC=cc
-CFLAGS+=-O2 -Wall -fomit-frame-pointer -no-cpp-precomp
+# Uncomment for MacOS:
+# It is not allowed to install to /usr/bin on MacOS any longer (SIP):
+CC = cc
+CFLAGS?=-O2
+CFLAGS+=-Wall -fomit-frame-pointer -no-cpp-precomp
 LDFLAGS+=
 #MANDIR=${PREFIX}/share/man
-BINDIR=${DESTDIR}/${PREFIX}/bin
-MANDIR=${DESTDIR}/${PREFIX}/share/man
+BINDIR=$(DESTDIR)/$(PREFIX)/bin
+MANDIR=$(DESTDIR)/$(PREFIX)/share/mem
 
 # Uncomment for HP/UX:
 #prefix=/opt
 #CC=cc
 # manpage of mbsrtowcs() requires C99 and the two defines
-#CFLAGS+=+w -D_XOPEN_SOURCE=500 -D_POSIX_C_SOURCE=200112 -AC99
+#CFLAGS+=+w -AC99
+#CPPFLAGS+=-D_XOPEN_SOURCE=500 -D_POSIX_C_SOURCE=200112 
 #LDFLAGS+=
 #MANDIR=${PREFIX}/share/man
 
 # Uncomment for OS/2:
-#CFLAGS+=-02 -Wall -fomit-frame-pointer -Zomf -Zsmall-conv
+#CFLAGS?=-O2
+#CFLAGS+=-Wall -fomit-frame-pointer -Zomf -Zsmall-conv
 #LDFLAGS+=-s -Zomf -Zsmall-conv
 
 # Uncomment for HP NonStop:
@@ -91,6 +102,13 @@ MANDIR=${DESTDIR}/${PREFIX}/share/man
 #LD=ld -d64
 #LDFLAGS+=-lc
 
+# Android NDK
+#CC=aarch64-linux-android26-clang # Need >= 26
+#CFLAGS?=-O2    # Or:
+#CFLAGS?=-ggdb
+#CFLAGS+=-std=c89 -pedantic -Wall -Wno-error=int-conversion
+#CPPFLAGS+=-D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64
+
 #------------------------------------------------------------
 
 all:	tree
@@ -99,7 +117,7 @@ tree:	$(OBJS)
 	$(CC) $(LDFLAGS) -o $(TREE_DEST) $(OBJS)
 
 $(OBJS): %.o:	%.c tree.h
-	$(CC) $(CFLAGS) -c -o $@ $<
+	$(CC) $(CFLAGS) $(CPPFLAGS) -c -o $@ $<
 
 clean:
 	rm -f $(TREE_DEST) *.o *~

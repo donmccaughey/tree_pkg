@@ -1,5 +1,5 @@
 /* $Copyright: $
- * Copyright (c) 1996 - 2023 by Steve Baker (ice@mama.indstate.edu)
+ * Copyright (c) 1996 - 2026 by Steve Baker (steve.baker.llc@gmail.com)
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,17 +17,10 @@
  */
 #include "tree.h"
 
-extern bool dflag, lflag, pflag, sflag, Fflag, aflag, fflag, uflag, gflag;
-extern bool Dflag, inodeflag, devflag, Rflag, cflag, hflag, siflag, duflag;
-extern bool noindent, force_color, xdev, nolinks, noreport;
-
-extern const int ifmt[];
-extern const char fmt[], *ftype[];
-
+extern struct Flags flag;
+extern const mode_t ifmt[];
+extern const char *ftype[];
 extern FILE *outfile;
-extern int Level, *dirs, maxdirs, errors;
-
-extern char *endcode;
 
 /*  JSON code courtesy of Florian Sesser <fs@it-agenten.com>
 [
@@ -53,7 +46,7 @@ extern char *endcode;
 void json_encode(FILE *fd, char *s)
 {
   char *ctrl = "0-------btn-fr------------------";
-  
+
   for(;*s;s++) {
     if ((unsigned char)*s < 32) {
       if (ctrl[(unsigned char)*s] != '-') fprintf(fd, "\\%c", ctrl[(unsigned char)*s]);
@@ -65,30 +58,33 @@ void json_encode(FILE *fd, char *s)
 
 void json_indent(int maxlevel)
 {
+  char *spaces[] = {"    ", "   ", "  ", " ", ""};
+  int clvl = flag.compress_indent + (flag.remove_space? 1 : 0);
   int i;
 
-  fprintf(outfile, "  ");
+  if (flag.noindent) return;
+  fprintf(outfile, "%s", spaces[clvl]);
   for(i=0; i<maxlevel; i++)
-    fprintf(outfile, "  ");
+    fprintf(outfile, "%s", spaces[clvl]);
 }
 
 void json_fillinfo(struct _info *ent)
 {
   #ifdef __USE_FILE_OFFSET64
-  if (inodeflag) fprintf(outfile,",\"inode\":%lld",(long long)ent->inode);
+  if (flag.inode) fprintf(outfile,",\"inode\":%lld",(long long)ent->inode);
   #else
-  if (inodeflag) fprintf(outfile,",\"inode\":%ld",(long int)ent->inode);
+  if (flag.inode) fprintf(outfile,",\"inode\":%ld",(long int)ent->inode);
   #endif
-  if (devflag) fprintf(outfile, ",\"dev\":%d", (int)ent->dev);
+  if (flag.dev) fprintf(outfile, ",\"dev\":%d", (int)ent->dev);
   #ifdef __EMX__
-  if (pflag) fprintf(outfile, ",\"mode\":\"%04o\",\"prot\":\"%s\"",ent->attr, prot(ent->attr));
+  if (flag.p) fprintf(outfile, ",\"mode\":\"%04o\",\"prot\":\"%s\"",ent->attr, prot(ent->attr));
   #else
-  if (pflag) fprintf(outfile, ",\"mode\":\"%04o\",\"prot\":\"%s\"", ent->mode & (S_IRWXU|S_IRWXG|S_IRWXO|S_ISUID|S_ISGID|S_ISVTX), prot(ent->mode));
+  if (flag.p) fprintf(outfile, ",\"mode\":\"%04o\",\"prot\":\"%s\"", ent->mode & (S_IRWXU|S_IRWXG|S_IRWXO|S_ISUID|S_ISGID|S_ISVTX), prot(ent->mode));
   #endif
-  if (uflag) fprintf(outfile, ",\"user\":\"%s\"", uidtoname(ent->uid));
-  if (gflag) fprintf(outfile, ",\"group\":\"%s\"", gidtoname(ent->gid));
-  if (sflag) {
-    if (hflag || siflag) {
+  if (flag.u) fprintf(outfile, ",\"user\":\"%s\"", uidtoname(ent->uid));
+  if (flag.g) fprintf(outfile, ",\"group\":\"%s\"", gidtoname(ent->gid));
+  if (flag.s) {
+    if (flag.h || flag.si) {
       char nbuf[64];
       int i;
       psize(nbuf,ent->size);
@@ -97,28 +93,29 @@ void json_fillinfo(struct _info *ent)
     } else
       fprintf(outfile, ",\"size\":%lld", (long long int)ent->size);
   }
-  if (Dflag) fprintf(outfile, ",\"time\":\"%s\"", do_date(cflag? ent->ctime : ent->mtime));
+  if (flag.D) fprintf(outfile, ",\"time\":\"%s\"", do_date(flag.c? ent->ctime : ent->mtime));
 }
 
 
 void json_intro(void)
 {
   extern char *_nl;
-  fprintf(outfile, "[%s", noindent? "" : _nl);
+  fprintf(outfile, "[%s", flag.noindent? "" : _nl);
 }
 
 void json_outtro(void)
 {
   extern char *_nl;
-  fprintf(outfile, "%s]\n", noindent? "" : _nl);
+  fprintf(outfile, "%s]\n", flag.noindent? "" : _nl);
 }
 
 int json_printinfo(char *dirname, struct _info *file, int level)
 {
+  UNUSED(dirname);
   mode_t mt;
   int t;
 
-  if (!noindent) json_indent(level);
+  if (!flag.noindent) json_indent(level);
 
   if (file != NULL) {
     if (file->lnk) mt = file->mode & S_IFMT;
@@ -134,43 +131,49 @@ int json_printinfo(char *dirname, struct _info *file, int level)
 
 int json_printfile(char *dirname, char *filename, struct _info *file, int descend)
 {
+  UNUSED(dirname);
   int i;
+  bool direrr = false;
 
   fprintf(outfile, ",\"name\":\"");
   json_encode(outfile, filename);
   fputc('"',outfile);
 
-  if (file && file->comment) {
-    fprintf(outfile, ",\"info\":\"");
-    for(i=0; file->comment[i]; i++) {
-      json_encode(outfile, file->comment[i]);
-      if (file->comment[i+1]) fprintf(outfile, "\\n");
+  if (file) {
+    if (file->comment) {
+      fprintf(outfile, ",\"info\":\"");
+      for(i=0; file->comment[i]; i++) {
+        json_encode(outfile, file->comment[i]);
+        if (file->comment[i+1]) fprintf(outfile, "\\n");
+      }
+      fprintf(outfile, "\"");
     }
-    fprintf(outfile, "\"");
+
+    if (file->lnk) {
+      fprintf(outfile, ",\"target\":\"");
+      json_encode(outfile, file->lnk);
+      fputc('"',outfile);
+    }
+    json_fillinfo(file);
+//   if (file && file->err) fprintf(outfile, ",\"error\": \"%s\"", file->err);
+    direrr = file->isdir && file->err;
   }
 
-  if (file && file->lnk) {
-    fprintf(outfile, ",\"target\":\"");
-    json_encode(outfile, file->lnk);
-    fputc('"',outfile);
-  }
-  if (file) json_fillinfo(file);
+  if (descend || direrr) fprintf(outfile, ",\"contents\":[");
+  else fputc('}',outfile);
 
-  if (file && file->err) fprintf(outfile, ",\"error\": \"%s\"", file->err);
-  if (!descend) fputc('}',outfile);
-  else fprintf(outfile, ",\"contents\":[");
-
-  return descend;
+  return descend || direrr;
 }
 
 int json_error(char *error)
 {
-  fprintf(outfile,"{\"error\": \"%s\"}%s",error, noindent?"":"\n");
+  fprintf(outfile,"{\"error\": \"%s\"}%s",error, flag.noindent?"":"");
   return 0;
 }
 
 void json_newline(struct _info *file, int level, int postdir, int needcomma)
 {
+  UNUSED(file);UNUSED(level);UNUSED(postdir);
   extern char *_nl;
 
   fprintf(outfile, "%s%s", needcomma? "," : "", _nl);
@@ -178,15 +181,18 @@ void json_newline(struct _info *file, int level, int postdir, int needcomma)
 
 void json_close(struct _info *file, int level, int needcomma)
 {
-  if (!noindent) json_indent(level);
-  fprintf(outfile,"]}%s%s", needcomma? ",":"", noindent? "":"\n");
+  UNUSED(file);
+  if (!flag.noindent) json_indent(level);
+  fprintf(outfile,"]}%s%s", needcomma? ",":"", flag.noindent? "":"\n");
 }
 
 void json_report(struct totals tot)
 {
-  fprintf(outfile, ",%s{\"type\":\"report\"",noindent?"":"\n  ");
-  if (duflag) fprintf(outfile,",\"size\":%lld", (long long int)tot.size);
+  fputc(',', outfile);
+  json_indent(0);
+  fprintf(outfile, "{\"type\":\"report\"");
+  if (flag.du) fprintf(outfile,",\"size\":%lld", (long long int)tot.size);
   fprintf(outfile,",\"directories\":%ld", tot.dirs);
-  if (!dflag) fprintf(outfile,",\"files\":%ld", tot.files);
+  if (!flag.d) fprintf(outfile,",\"files\":%ld", tot.files);
   fprintf(outfile, "}");
 }

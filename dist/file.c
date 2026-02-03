@@ -1,5 +1,5 @@
 /* $Copyright: $
- * Copyright (c) 1996 - 2023 by Steve Baker (ice@mama.indstate.edu)
+ * Copyright (c) 1996 - 2026 by Steve Baker (steve.baker.llc@gmail.com)
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,18 +17,10 @@
  */
 #include "tree.h"
 
-extern bool dflag, Fflag, aflag, fflag, pruneflag, gitignore, showinfo;
-extern bool noindent, force_color, matchdirs, fflinks;
-extern bool reverse;
+extern struct Flags flag;
 extern int pattern, ipattern;
-
-extern int (*topsort)();
+extern int (*topsort)(const struct _info **, const struct _info **);
 extern FILE *outfile;
-extern int Level, *dirs, maxdirs;
-
-extern bool colorize;
-extern char *endcode;
-
 extern char *file_comment, *file_pathsep;
 
 /* 64K paths maximum */
@@ -64,7 +56,7 @@ char *nextpc(char **p, int *tok)
   return s;
 }
 
-struct _info *newent(char *name) {
+struct _info *newent(const char *name) {
   struct _info *n = xmalloc(sizeof(struct _info));
   memset(n,0,sizeof(struct _info));
   n->name = scopy(name);
@@ -73,8 +65,8 @@ struct _info *newent(char *name) {
   return n;
 }
 
-/* Should replace this with a Red-Black tree implementation or the like */
-struct _info *search(struct _info **dir, char *name)
+/* Don't insertion sort, let fprune() do the sort if necessary */
+struct _info *search(struct _info **dir, const char *name)
 {
   struct _info *ptr, *prev, *n;
   int cmp;
@@ -84,7 +76,6 @@ struct _info *search(struct _info **dir, char *name)
   for(prev = ptr = *dir; ptr != NULL; ptr=ptr->next) {
     cmp = strcmp(ptr->name,name);
     if (cmp == 0) return ptr;
-    if (cmp > 0) break;
     prev = ptr;
   }
   n = newent(name);
@@ -109,15 +100,19 @@ void freefiletree(struct _info *ent)
 /**
  * Recursively prune (unset show flag) files/directories of matches/ignored
  * patterns:
+ * TODO: Perhaps make this the primary prune function and have unix_getfulltree
+ *       call it the same as the *file_getfulltree functions do.
  */
-struct _info **fprune(struct _info *head, char *path, bool matched, bool root)
+struct _info **fprune(struct _info *head, const char *path, bool matched, bool root)
 {
-  struct _info **dir, *new = NULL, *end = NULL, *ent, *t;
+  struct _info **dir = NULL, *new = NULL, *end = NULL, *ent, *t;
   struct comment *com;
   struct ignorefile *ig = NULL;
   struct infofile *inf = NULL;
   char *cur, *fpath = xmalloc(sizeof(char) * MAXPATH);
-  int i, show, count = 0;
+  size_t i, count = 0;
+  bool show, defmatched = matched;
+  int tmp_pattern = 0;
 
   strcpy(fpath, path);
   cur = fpath + strlen(fpath);
@@ -129,28 +124,55 @@ struct _info **fprune(struct _info *head, char *path, bool matched, bool root)
     strcpy(cur, ent->name);
     if (ent->tchild) ent->isdir = 1;
 
-    show = 1;
-    if (dflag && !ent->isdir) show = 0;
-    if (!aflag && !root && ent->name[0] == '.') show = 0;
+    show = true;
+    if (flag.d && !ent->isdir) show = false;
+    if (!flag.a && ent->name[0] == '.') show = false;
     if (show && !matched) {
-      if (!ent->isdir) {
-	if (pattern && !patinclude(ent->name, 0)) show = 0;
-	if (ipattern && patignore(ent->name, 0)) show = 0;
-      }
-      if (ent->isdir && show && matchdirs && pattern) {
-	if (patinclude(ent->name, 1)) matched = TRUE;
+      if (ent->isdir == false) {
+        if (pattern && !patinclude(ent->name, ent->isdir, false) && !patinclude(fpath, ent->isdir, true)) show = false;
+        if (ipattern && (patignore(ent->name, ent->isdir, false) || patignore(fpath, ent->isdir, true))) show = false;
+      } else {
+        if (pattern && (patinclude(ent->name, ent->isdir, false) || patinclude(fpath, ent->isdir, true))) {
+          show = true;
+          matched = true;
+          tmp_pattern = pattern;
+          pattern = 0;
+        }
+        if (ipattern && (patignore(ent->name, ent->isdir, false) || patignore(fpath, ent->isdir, true))) show = false;
       }
     }
-    if (pruneflag && !matched && ent->isdir && ent->tchild == NULL) show = 0;
-    if (gitignore && filtercheck(path, ent->name, ent->isdir)) show = 0;
-    if (show && showinfo && (com = infocheck(path, ent->name, inf != NULL, ent->isdir))) {
+    if (flag.gitignore && filtercheck(path, ent->name, ent->isdir)) show = false;
+
+    if (show && flag.showinfo && (com = infocheck(path, ent->name, inf != NULL, ent->isdir))) {
       for(i = 0; com->desc[i] != NULL; i++);
       ent->comment = xmalloc(sizeof(char *) * (i+1));
       for(i = 0; com->desc[i] != NULL; i++) ent->comment[i] = scopy(com->desc[i]);
       ent->comment[i] = NULL;
     }
-    if (show && ent->tchild != NULL) ent->child = fprune(ent->tchild, fpath, matched, FALSE);
+    if (show && ent->tchild != NULL) ent->child = fprune(ent->tchild, fpath, matched, false);
 
+    if (flag.prune && !matched && ent->isdir && ent->child == NULL) {
+      ent->tchild = NULL;
+      show = false;
+    }
+
+    if (flag.condense_singletons) {
+      while (is_singleton(ent)) {
+        struct _info **child = ent->child;
+        char *name = pathconcat(ent->name, child[0]->name, NULL);
+        free(ent->name);
+        ent->name = scopy(name);
+        ent->child = child[0]->child;
+        ent->condensed = ent->condensed + 1 + child[0]->condensed;
+        free_dir(child);
+      }
+    }
+
+    if (tmp_pattern) {
+      pattern = tmp_pattern;
+      tmp_pattern = 0;
+    }
+    matched = defmatched;
 
     t = ent;
     ent = ent->next;
@@ -165,15 +187,17 @@ struct _info **fprune(struct _info *head, char *path, bool matched, bool root)
   }
   if (end) end->next = NULL;
 
-  dir = xmalloc(sizeof(struct _info *) * (count+1));
-  for(count = 0, ent = new; ent != NULL; ent = ent->next, count++) {
-    dir[count] = ent;
+  if (count > 0) {
+    dir = xmalloc(sizeof(struct _info *) * (count+1));
+    for(count = 0, ent = new; ent != NULL; ent = ent->next, count++) {
+      dir[count] = ent;
+    }
+    dir[count] = NULL;
+
+    if (topsort && count > 1) qsort(dir,count,sizeof(struct _info *), (int (*)(const void *, const void *))topsort);
   }
-  dir[count] = NULL;
 
-  if (topsort) qsort(dir,count,sizeof(struct _info *),topsort);
-
-  if (ig != NULL) ig = pop_filterstack();
+  if (ig != NULL) ig = flush_filterstack();
   if (inf != NULL) inf = pop_infostack();
   free(fpath);
 
@@ -182,10 +206,12 @@ struct _info **fprune(struct _info *head, char *path, bool matched, bool root)
 
 struct _info **file_getfulltree(char *d, u_long lev, dev_t dev, off_t *size, char **err)
 {
+  UNUSED(lev);UNUSED(dev);UNUSED(err);
   FILE *fp = (strcmp(d,".")? fopen(d,"r") : stdin);
   char *path, *spath, *s, *link;
   struct _info *root = NULL, **cwd, *ent;
-  int l, tok;
+  int tok;
+  size_t l;
 
   *size = 0;
   if (fp == NULL) {
@@ -203,7 +229,7 @@ struct _info **file_getfulltree(char *d, u_long lev, dev_t dev, off_t *size, cha
     spath = path;
     cwd = &root;
 
-    link = fflinks? strstr(path, " -> ") : NULL;
+    link = flag.fflinks? strstr(path, " -> ") : NULL;
     if (link) {
       *link = '\0';
       link += 4;
@@ -211,13 +237,14 @@ struct _info **file_getfulltree(char *d, u_long lev, dev_t dev, off_t *size, cha
     ent = NULL;
     do {
       s = nextpc(&spath, &tok);
-      if (tok == T_PATHSEP) continue;
       switch(tok) {
 	case T_PATHSEP: continue;
 	case T_FILE:
 	case T_DIR:
-	  /* Should probably handle '.' and '..' entries here */
-	  ent = search(cwd, s);
+          if (strcmp(s, ".") == 0) continue;
+          // Assume that '..' shouldn't ever occur.
+
+          ent = search(cwd, s);
 	  /* Might be empty, but should definitely be considered a directory: */
 	  if (tok == T_DIR) {
 	    ent->isdir = 1;
@@ -231,7 +258,7 @@ struct _info **file_getfulltree(char *d, u_long lev, dev_t dev, off_t *size, cha
       }
     } while (tok != T_FILE && tok != T_EOP);
 
-    if (link) {
+    if (ent && link) {
       ent->isdir = 0;
       ent->mode = S_IFLNK;
       ent->lnk = scopy(link);
@@ -242,15 +269,16 @@ struct _info **file_getfulltree(char *d, u_long lev, dev_t dev, off_t *size, cha
   free(path);
 
   /* Prune accumulated directory tree: */
-  return fprune(root, "", FALSE, TRUE);
+  return fprune(root, "", false, true);
 }
 
 struct _info **tabedfile_getfulltree(char *d, u_long lev, dev_t dev, off_t *size, char **err)
 {
+  UNUSED(lev);UNUSED(dev);UNUSED(err);
   FILE *fp = (strcmp(d,".")? fopen(d,"r") : stdin);
   char *path, *spath, *link;
   struct _info *root = NULL, **istack, *ent;
-  int line = 0, tabs, maxstack = 2048, top = 0, l;
+  size_t line = 0, l, tabs, top = 0, maxstack = 2048;
 
   *size = 0;
   if (fp == NULL) {
@@ -270,20 +298,20 @@ struct _info **tabedfile_getfulltree(char *d, u_long lev, dev_t dev, off_t *size
 
     for(tabs=0; path[tabs] == '\t'; tabs++);
     if (tabs >= maxstack) {
-      fprintf(stderr, "tree: Tab depth exceeds maximum path depth (%d >= %d) on line %d\n", tabs, maxstack, line);
+      fprintf(stderr, "tree: Tab depth exceeds maximum path depth (%ld >= %ld) on line %ld\n", tabs, maxstack, line);
       continue;
     }
 
     spath = path+tabs;
 
-    link = fflinks? strstr(spath, " -> ") : NULL;
+    link = flag.fflinks? strstr(spath, " -> ") : NULL;
     if (link) {
       *link = '\0';
       link += 4;
     }
-    if (tabs-1 > top) {
-	fprintf(stderr, "tree: Orphaned file [%s] on line %d, check tab depth in file.\n", spath, line);
-	continue;
+    if (tabs > 0 && ((tabs-1 > top) || (istack[tabs-1] == NULL))) {
+      fprintf(stderr, "tree: Orphaned file [%s] on line %ld, check tab depth in file.\n", spath, line);
+      continue;
     }
     ent = istack[tabs] = search(tabs? &(istack[tabs-1]->tchild) : &root, spath);
     ent->mode = S_IFREG;
@@ -304,5 +332,5 @@ struct _info **tabedfile_getfulltree(char *d, u_long lev, dev_t dev, off_t *size
   free(istack);
 
   /* Prune accumulated directory tree: */
-  return fprune(root, "", FALSE, TRUE);
+  return fprune(root, "", false, true);
 }

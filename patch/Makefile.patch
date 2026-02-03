@@ -1,40 +1,53 @@
---- patch/Makefile.original	2023-09-02 19:49:40
-+++ dist/Makefile	2023-09-02 19:52:02
-@@ -23,7 +23,7 @@
+--- patch/Makefile.original	2026-02-02 19:50:06
++++ dist/Makefile	2026-02-02 20:01:13
+@@ -24,22 +24,22 @@
  
- VERSION=2.1.1
+ VERSION=2.3.1
  TREE_DEST=tree
 -DESTDIR=${PREFIX}/bin
 +#DESTDIR=${PREFIX}/bin
  MAN=tree.1
  # Probably needs to be ${PREFIX}/share/man for most systems now
- MANDIR=${PREFIX}/man
-@@ -32,7 +32,7 @@
+-MANDIR=${PREFIX}/man
++#MANDIR=${PREFIX}/man
+ OBJS=color.o file.o filter.o hash.o html.o info.o json.o list.o tree.o unix.o \
+      util.o xml.o strverscmp.o
+ 
  # Uncomment options below for your particular OS:
  
  # Linux defaults:
--CFLAGS+=-ggdb -std=c11 -pedantic -Wall -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64
-+#CFLAGS+=-ggdb -std=c11 -pedantic -Wall -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64
- #CFLAGS+=-O3 -std=c11 -pedantic -Wall -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64
- #LDFLAGS+=-s
+-LDFLAGS?=-s
++#LDFLAGS?=-s
+ #CFLAGS?=-ggdb
+-CFLAGS?=-O3
+-CFLAGS+=-std=c11 -Wpedantic -Wall -Wextra -Wstrict-prototypes -Wshadow -Wconversion
++#CFLAGS?=-O3
++#CFLAGS+=-std=c11 -Wpedantic -Wall -Wextra -Wstrict-prototypes -Wshadow -Wconversion
+ # _LARGEFILE64_SOURCE may be considered obsolete
+-CPPFLAGS+=-DLARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64
++#CPPFLAGS+=-DLARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64
  
-@@ -60,10 +60,12 @@
+ # Uncomment for FreeBSD:
+ #CC=cc
+@@ -68,11 +68,13 @@
  
- # Uncomment for OS X:
- # It is not allowed to install to /usr/bin on OS X any longer (SIP):
--#CC=cc
--#CFLAGS+=-O2 -Wall -fomit-frame-pointer -no-cpp-precomp
+ # Uncomment for MacOS:
+ # It is not allowed to install to /usr/bin on MacOS any longer (SIP):
+-#CC = cc
+-#CFLAGS?=-O2
+-#CFLAGS+=-Wall -fomit-frame-pointer -no-cpp-precomp
 -#LDFLAGS+=
-+CC=cc
-+CFLAGS+=-O2 -Wall -fomit-frame-pointer -no-cpp-precomp
++CC = cc
++CFLAGS?=-O2
++CFLAGS+=-Wall -fomit-frame-pointer -no-cpp-precomp
 +LDFLAGS+=
  #MANDIR=${PREFIX}/share/man
-+BINDIR=${DESTDIR}/${PREFIX}/bin
-+MANDIR=${DESTDIR}/${PREFIX}/share/man
++BINDIR=$(DESTDIR)/$(PREFIX)/bin
++MANDIR=$(DESTDIR)/$(PREFIX)/share/mem
  
  # Uncomment for HP/UX:
  #prefix=/opt
-@@ -103,9 +105,12 @@
+@@ -121,9 +123,12 @@
  	rm -f $(TREE_DEST) *.o *~
  
  install: tree
