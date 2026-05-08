@@ -8,6 +8,10 @@ revision := 1
 archs := arm64 x86_64
 
 rev := $(if $(patsubst 1,,$(revision)),-r$(revision),)
+tag := v$(version)-r$(revision)
+tag-message := A signed and notarized universal installer package for \`tree\` \
+	$(version).
+tag-title := tree $(version) for macOS rev "$(revision)\n
 ver := $(version)$(rev)
 
 
@@ -23,7 +27,7 @@ notarize : tree-$(ver).pkg
 
 
 .PHONY : clean
-clean : 
+clean :
 	-rm -f tree-*.pkg
 	-rm -rf $(TMP)
 
@@ -154,9 +158,9 @@ $(TMP)/build-report.txt : | $$(dir $$@)
 	printf 'TMP directory: %s\n' "$(TMP)" >> $@
 	printf 'CFLAGS: %s\n' "$(CFLAGS)" >> $@
 	printf 'LDFLAGS: %s\n' "$(LDFLAGS)" >> $@
-	printf 'Tag: v%s-r%s\n' "$(version)" "$(revision)" >> $@
-	printf 'Tag Title: tree %s for macOS rev %s\n' "$(version)" "$(revision)" >> $@
-	printf 'Tag Message: A signed and notarized universal installer package for `tree` %s.\n' "$(version)" >> $@
+	printf 'Tag: %s\n' "$(tag)" >> $@
+	printf 'Tag Title: %s\n' "$(tag-title)" >> $@
+	printf 'Tag Message: %s\n' "$(tag-message)" >> $@
 
 $(TMP)/distribution.xml \
 $(TMP)/resources/welcome.html : $(TMP)/% : % | $$(dir $$@)
@@ -175,7 +179,7 @@ $(TMP)/resources/license.html : $(TMP)/% : % | $$(dir $$@)
 	cp $< $@
 
 $(TMP) \
-$(TMP)/resources : 
+$(TMP)/resources :
 	mkdir -p $@
 
 
@@ -203,4 +207,3 @@ $(TMP)/notarized.stamp.txt : $(TMP)/notarization-log.json | $$(dir $$@)
 tree-$(ver).pkg : $(TMP)/tree-$(ver)-unnotarized.pkg $(TMP)/notarized.stamp.txt
 	cp $< $@
 	xcrun stapler staple $@
-
