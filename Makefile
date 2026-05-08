@@ -33,13 +33,7 @@ clean :
 
 
 .PHONY : check
-check :
-	test "$(shell lipo -archs $(TMP)/install/usr/local/bin/tree)" = "x86_64 arm64"
-	test "$(shell ./tools/dylibs --no-sys-libs --count $(TMP)/install/usr/local/bin/tree) dylibs" = "0 dylibs"
-	codesign --verify --strict $(TMP)/install/usr/local/bin/tree
-	pkgutil --check-signature tree-$(ver).pkg
-	spctl --assess --type install tree-$(ver).pkg
-	xcrun stapler validate tree-$(ver).pkg
+check : $(TMP)/checked-package.stamp.txt
 
 
 ##### compilation flags ##########
@@ -207,3 +201,11 @@ $(TMP)/notarized.stamp.txt : $(TMP)/notarization-log.json | $$(dir $$@)
 tree-$(ver).pkg : $(TMP)/tree-$(ver)-unnotarized.pkg $(TMP)/notarized.stamp.txt
 	cp $< $@
 	xcrun stapler staple $@
+
+$(TMP)/checked-package.stamp.txt : tree-$(ver).pkg
+	test "$(shell lipo -archs $(TMP)/install/usr/local/bin/tree)" = "x86_64 arm64"
+	test "$(shell ./tools/dylibs --no-sys-libs --count $(TMP)/install/usr/local/bin/tree) dylibs" = "0 dylibs"
+	codesign --verify --strict $(TMP)/install/usr/local/bin/tree
+	pkgutil --check-signature tree-$(ver).pkg
+	spctl --assess --type install tree-$(ver).pkg
+	xcrun stapler validate tree-$(ver).pkg
