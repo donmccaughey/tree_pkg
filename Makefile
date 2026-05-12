@@ -3,7 +3,7 @@ INSTALLER_SIGNING_ID ?= Developer ID Installer: Donald McCaughey
 NOTARIZATION_KEYCHAIN_PROFILE ?= Donald McCaughey
 TMP ?= $(abspath tmp)
 
-version := 2.3.1
+version := 2.3.2
 revision := 1
 archs := arm64 x86_64
 
@@ -11,7 +11,7 @@ rev := $(if $(patsubst 1,,$(revision)),-r$(revision),)
 tag := v$(version)-r$(revision)
 tag-message := A signed and notarized universal installer package for \`tree\` \
 	$(version).
-tag-title := tree $(version) for macOS rev "$(revision)\n
+tag-title := tree $(version) for macOS rev $(revision)
 ver := $(version)$(rev)
 
 

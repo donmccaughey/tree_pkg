@@ -22,7 +22,7 @@ PREFIX=/usr/local
 CC ?= gcc
 INSTALL ?= install
 
-VERSION=2.3.1
+VERSION=2.3.2
 TREE_DEST=tree
 DESTDIR=${PREFIX}/bin
 MAN=tree.1
@@ -34,10 +34,11 @@ OBJS=color.o file.o filter.o hash.o html.o info.o json.o list.o tree.o unix.o \
 # Uncomment options below for your particular OS:
 
 # Linux defaults:
-LDFLAGS?=-s
-#CFLAGS?=-ggdb
+#LDFLAGS?=-s
+CFLAGS?=-ggdb
 CFLAGS?=-O3
-CFLAGS+=-std=c11 -Wpedantic -Wall -Wextra -Wstrict-prototypes -Wshadow -Wconversion
+CFLAGS+=-std=c11 -Wpedantic -Wall -Wextra -Wstrict-prototypes -Wshadow -Wconversion \
+	-Wdiscarded-qualifiers
 # _LARGEFILE64_SOURCE may be considered obsolete
 CPPFLAGS+=-DLARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64
 

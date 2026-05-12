@@ -1,4 +1,17 @@
-Version 2.3.1 (1/31/26)
+Version 2.3.2 (3/16/2026)
+  - Whitelist characters instead of blacklisting (had an incomplete blacklist
+    somehow,) in url_encode() (M. Richardson)
+  - Wrong path was being used to allocate a path string. (Masaki Hasegawa)
+  - Symbolic link name might be printed incorrectly when -f and -l were used
+    at the same time. (Masaki Hasegawa)
+  - Use EXIT_FAILURE / EXIT_SUCCESS instead of 1 / 0 in exit(), supposedly more
+    portable, but I am not sure I'm convinced. (polluks@github)
+  - Fix regression (maybe) in --gitignore for paths that are relative to the
+    .gitignore file broken by using realpath to to the .gitignore.  Relative
+    patterns in ignore files above the tree'd root will likely not work w/o
+    some more work on this. (Merlin04@github)
+
+Version 2.3.1 (1/31/2026)
   - The "something always slips through" release.
   - Completely #include guard selinux context output for non-Linux as well as
     the stddata_fd variable declared outside of an include guard.
@@ -315,7 +328,7 @@ Version 2.0.0 (12/21/2021)
 
 Version 1.8.0 (11/16/2018)
   - Added an experimental --fromfile option (suggested by several people.)
-    This may eventually be replaced or supplimented by a --fromjson option.
+    This may eventually be replaced or supplemented by a --fromjson option.
   - Added support for BSD's CLICOLOR and CLICOLOR_FORCE environment variables.
     (Suggested by Alyssa Ross)
   - Use strftime() exclusively when formatting date/time to respect locale.
@@ -432,8 +445,8 @@ Version 1.5.2 (06/06/08)
   - Added -v option for version sorting (also called natural sorting) ala ls.
 
 Version 1.5.1.2 (06/04/08)
-  - Fixed compile issues related to MB_CUR_MAX on non-linux machines.
-  - Removed unecessary features.h
+  - Fixed compile issues related to MB_CUR_MAX on non-Linux machines.
+  - Removed unnecessary features.h
 
 Version 1.5.1.1 (06/11/07)
   - Regression in HTML output, fixed formatting issues.

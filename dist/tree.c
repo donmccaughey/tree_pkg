@@ -18,8 +18,8 @@
 
 #include "tree.h"
 
-char *version = "$Version: $ tree v2.3.1 %s 1996 - 2026 by Steve Baker, Thomas Moore, Francesc Rocher, Florian Sesser, Kyosuke Tokoro $";
-char *hversion= "\t\t tree v2.3.1 %s 1996 - 2026 by Steve Baker and Thomas Moore <br>\n"
+char *version = "$Version: $ tree v2.3.2 %s 1996 - 2026 by Steve Baker, Thomas Moore, Francesc Rocher, Florian Sesser, Kyosuke Tokoro $";
+char *hversion= "\t\t tree v2.3.2 %s 1996 - 2026 by Steve Baker and Thomas Moore <br>\n"
 		"\t\t HTML output hacked and copyleft %s 1998 by Francesc Rocher <br>\n"
 		"\t\t JSON output hacked and copyleft %s 2014 by Florian Sesser <br>\n"
 		"\t\t Charsets / OS/2 support %s 2001 by Kyosuke Tokoro\n";
@@ -98,7 +98,7 @@ char *long_arg(char *argv[], size_t i, size_t *j, size_t *n, char *prefix) {
       } else {
 	fprintf(stderr,"tree: Missing argument to %s=\n", prefix);
 	if (strcmp(prefix, "--charset=") == 0) initlinedraw(true);
-	exit(1);
+	exit(EXIT_FAILURE);
       }
     } else if (argv[*n] != NULL) {
       ret = argv[*n];
@@ -107,7 +107,7 @@ char *long_arg(char *argv[], size_t i, size_t *j, size_t *n, char *prefix) {
     } else {
       fprintf(stderr,"tree: Missing argument to %s\n", prefix);
       if (strcmp(prefix, "--charset") == 0) initlinedraw(true);
-      exit(1);
+      exit(EXIT_FAILURE);
     }
   }
   return ret;
@@ -232,7 +232,7 @@ int main(int argc, char **argv)
 	case 'P':
 	  if (argv[n] == NULL) {
 	    fprintf(stderr,"tree: Missing argument to -P option.\n");
-	    exit(1);
+	    exit(EXIT_FAILURE);
 	  }
 	  if (pattern >= maxpattern-1) patterns = xrealloc(patterns, sizeof(char *) * (size_t)(maxpattern += 10));
 	  patterns[pattern++] = argv[n++];
@@ -241,7 +241,7 @@ int main(int argc, char **argv)
 	case 'I':
 	  if (argv[n] == NULL) {
 	    fprintf(stderr,"tree: Missing argument to -I option.\n");
-	    exit(1);
+	    exit(EXIT_FAILURE);
 	  }
 	  if (ipattern >= maxipattern-1) ipatterns = xrealloc(ipatterns, sizeof(char *) * (size_t)(maxipattern += 10));
 	  ipatterns[ipattern++] = argv[n++];
@@ -297,7 +297,7 @@ int main(int argc, char **argv)
 	  };
 	  if (argv[n] == NULL) {
 	    fprintf(stderr,"tree: Missing argument to -H option.\n");
-	    exit(1);
+	    exit(EXIT_FAILURE);
 	  }
 	  host = argv[n++];
 	  k = strlen(host)-1;
@@ -312,7 +312,7 @@ int main(int argc, char **argv)
 	case 'T':
 	  if (argv[n] == NULL) {
 	    fprintf(stderr,"tree: Missing argument to -T option.\n");
-	    exit(1);
+	    exit(EXIT_FAILURE);
 	  }
 	  title = argv[n++];
 	  break;
@@ -330,19 +330,19 @@ int main(int argc, char **argv)
 	  } else {
 	    if ((sLevel = argv[n++]) == NULL) {
 	      fprintf(stderr,"tree: Missing argument to -L option.\n");
-	      exit(1);
+	      exit(EXIT_FAILURE);
 	    }
 	  }
 	  Level = (int)strtoul(sLevel,NULL,0)-1;
 	  if (Level < 0) {
 	    fprintf(stderr,"tree: Invalid level, must be greater than 0.\n");
-	    exit(1);
+	    exit(EXIT_FAILURE);
 	  }
 	  break;
 	case 'o':
 	  if (argv[n] == NULL) {
 	    fprintf(stderr,"tree: Missing argument to -o option.\n");
-	    exit(1);
+	    exit(EXIT_FAILURE);
 	  }
 	  outfilename = argv[n++];
 	  break;
@@ -355,7 +355,7 @@ int main(int argc, char **argv)
 	    /* Long options that don't take parameters should just use strcmp: */
 	    if (!strcmp("--help",argv[i])) {
 	      usage(2);
-	      exit(0);
+	      exit(EXIT_SUCCESS);
 	    }
 	    if (!strcmp("--version",argv[i])) {
 	      j = strlen(argv[i])-1;
@@ -442,7 +442,7 @@ int main(int argc, char **argv)
 		fprintf(stderr,"tree: Sort type '%s' not valid, should be one of: ", arg);
 		for(k=0; sorts[k].name; k++)
 		  printf("%s%c", sorts[k].name, sorts[k+1].name? ',': '\n');
-		exit(1);
+		exit(EXIT_FAILURE);
 	      }
 	      break;
 	    }
@@ -465,11 +465,11 @@ int main(int argc, char **argv)
 	    }
 	    if ((arg = long_arg(argv, i, &j, &n, "--gitfile")) != NULL) {
 	      flag.gitignore=true;
-	      ig = new_ignorefile(arg, false);
+	      ig = new_ignorefile(arg, arg, false);
 	      if (ig != NULL) push_filterstack(ig);
 	      else {
 		fprintf(stderr,"tree: Could not load gitignore file\n");
-		exit(1);
+		exit(EXIT_FAILURE);
 	      }
 	      break;
 	    }
@@ -489,7 +489,7 @@ int main(int argc, char **argv)
 	      if (inf != NULL) push_infostack(inf);
 	      else {
 		fprintf(stderr,"tree: Could not load infofile\n");
-		exit(1);
+		exit(EXIT_FAILURE);
 	      }
 	      break;
 	    }
@@ -564,14 +564,14 @@ int main(int argc, char **argv)
 #endif
 	    fprintf(stderr,"tree: Invalid argument `%s'.\n",argv[i]);
 	    usage(1);
-	    exit(1);
+	    exit(EXIT_FAILURE);
 	  }
 	  /* Falls through */
 	default:
 	  /* printf("here i = %d, n = %d\n", i, n); */
 	  fprintf(stderr,"tree: Invalid argument -`%c'.\n",argv[i][j]);
 	  usage(1);
-	  exit(1);
+	  exit(EXIT_FAILURE);
 	  break;
 	}
       }
@@ -590,7 +590,7 @@ int main(int argc, char **argv)
 
   if (showversion) {
     print_version(true);
-    exit(0);
+    exit(EXIT_SUCCESS);
   }
 
   /* Insure sensible defaults and sanity check options: */
@@ -652,7 +652,7 @@ void setoutput(const char *filename)
 #endif
     if (outfile == NULL) {
       fprintf(stderr,"tree: invalid filename '%s'\n", filename);
-      exit(1);
+      exit(EXIT_FAILURE);
     }
   }
 }
@@ -765,7 +765,7 @@ void usage(int n)
 	"  \b--version\r     Print version and exit.\n"
 	"  \b--help\r        Print usage and this help message and exit.\n"
 	"  \b--\r            Options processing terminator.\n");
-  exit(0);
+  exit(EXIT_SUCCESS);
 }
 
 /**
@@ -774,7 +774,7 @@ void usage(int n)
 int patignore(const char *name, bool isdir, bool checkpaths)
 {
   int i;
-  char *pc;
+  const char *pc;
   for(i=0; i < ipattern; i++) {
     if (patmatch(name, ipatterns[i], isdir)) return 1;
     else if (checkpaths) {
@@ -794,7 +794,7 @@ int patignore(const char *name, bool isdir, bool checkpaths)
 int patinclude(const char *name, bool isdir, bool checkpaths)
 {
   int i;
-  char *pc;
+  const char *pc;
   for(i=0; i < pattern; i++) {
     if (patmatch(name, patterns[i], isdir)) return 1;
     else if (checkpaths) {
@@ -1015,16 +1015,17 @@ struct _info **read_dir(char *dir, ssize_t *n, int infotop)
 
 void push_files(const char *dir, struct ignorefile **ig, struct infofile **inf, bool top)
 {
+  char path[PATH_MAX];
   char *stmp;
 
   if (flag.gitignore) {
     struct ignorefile *tig = NULL;
     /* Not going to implement git configs so no core.excludesFile support. */
     if (top && (stmp = getenv("GIT_DIR"))) {
-      push_filterstack(tig = new_ignorefile(pathconcat(stmp, "info/exclude", NULL), false));
+      push_filterstack(tig = new_ignorefile(stmp, pathconcat(path, stmp, "info/exclude", NULL), false));
     }
     if (top) *ig = gitignore_search(dir, 0);
-    else push_filterstack(*ig = new_ignorefile(dir, top));
+    else push_filterstack(*ig = new_ignorefile(dir, dir, top));
     if (*ig == NULL) *ig = tig;
   }
   if (flag.showinfo) {
@@ -1036,11 +1037,6 @@ void push_files(const char *dir, struct ignorefile **ig, struct infofile **inf, 
  * This can and will use a large amount of memory for large directory trees
  * and also take some time.
  */
-// struct _info **unix_getfulltree(char *d, u_long lev, dev_t dev, off_t *size, char **err)
-// {
-// }
-
-
 struct _info **unix_getfulltree(char *d, u_long lev, dev_t dev, off_t *size, char **err)
 {
   char *path;
@@ -1107,7 +1103,7 @@ struct _info **unix_getfulltree(char *d, u_long lev, dev_t dev, off_t *size, cha
 	    if (*(*dir)->lnk == '/')
 	      (*dir)->child = unix_getfulltree((*dir)->lnk,lev+1,dev,&((*dir)->size),&((*dir)->err));
 	    else {
-	      if (strlen(d)+strlen((*dir)->lnk)+2 > pathsize) path=xrealloc(path,pathsize=(strlen(d)+strlen((*dir)->name)+1024));
+	      if (strlen(d)+strlen((*dir)->lnk)+2 > pathsize) path=xrealloc(path,pathsize=(strlen(d)+strlen((*dir)->lnk)+1024));
 	      if (flag.f && !strcmp(d,"/")) sprintf(path,"%s%s",d,(*dir)->lnk);
 	      else sprintf(path,"%s/%s",d,(*dir)->lnk);
 	      (*dir)->child = unix_getfulltree(path,lev+1,dev,&((*dir)->size),&((*dir)->err));

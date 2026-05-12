@@ -28,12 +28,12 @@ Francesc Rocher
   - Added options -o, -L and -R.
 
 Gerald Scheidl
-  - Added -S option to print ASCII graphics lines for use under linux
+  - Added -S option to print ASCII graphics lines for use under Linux
     console when an alternate console font has been selected (might also
     work under DOS telnet).
 
 Guido Socher (and others)
-  - Made tree more portable.  Should compile under solaris.
+  - Made tree more portable.  Should compile under Solaris.
 
 Mitja Lacen
   - Discovered bug where tree will segmentation fault on long pathnames.
@@ -54,7 +54,7 @@ Daniel Lee
   - Reported that Tru64 defines TRUE/FALSE in sys/types.h (OSF1 standard?)
 
 Paolo Violini
-  - Found bug in tree that caused it to seg-fault if 50 file arguments where
+  - Found bug in tree that caused it to segfault if 50 file arguments where
     given and directory coloring was turned on.
 
 Mitsuaki Masuhara
@@ -92,7 +92,7 @@ Jack Cuyler
   - Suggested -h option for human readable output for -s, ala ls -lh.
 
 Jonathon Cranford
-  - Supplied patch to make tree under cygwin.
+  - Supplied patch to make tree under CygWin.
 
 Richard Houser
   - Provided patch to fix a colorization bug when dealing with special
@@ -146,7 +146,7 @@ Ujjwal Kumar
     output more like ls.
 
 Ivan Shmakov
-  - Pointed out multiple CLI defenciencies (via Debian)
+  - Pointed out multiple CLI deficiencies (via Debian)
 
 Mantas Mikulnas
   - Provided patch to make tree more reliably detect the UTF-8 locale.
@@ -190,7 +190,7 @@ Nick Craig-Wood
     improper UTF-8 encoding leading to garbage being printed.
 
 Mantas Mikulėnas
-  - Fixed issue with malformed multibyte string handling.
+  - Fixed issue with malformed multi byte string handling.
 
 Wagner Camarao
   - Pointed out that JSON size output ignored -h/--si flags
@@ -228,7 +228,7 @@ John A. Fedoruk
   - Suggested --filesfirst option.
 
 Michael Osipov
- - Optimized makefile, HP/UX support.
+ - Optimized Makefile, HP/UX support.
 
 Richard Mitchell
   - Suggested --metafirst option
@@ -367,6 +367,19 @@ PowerPlop@github
 
 FloppyDisco@github
  - Noted issue with --matchdirs and -P
+
+M. Richardson
+ - Noted issue with url_encode
+
+Masaki Hasegawa
+ - Symbolic names might be printed incorrectly with -f and -l combined
+ - Wrong path being used to allocate a path buffer
+
+polluks@github
+ - Suggested using EXIT_SUCCESS / EXIT_FAILURE defines for portability
+
+Merlin04@github
+ - Noted regression with --gitignore and relative paths
 
 And many others whom I've failed to keep track of.  I should have started
 this list years ago.

@@ -191,18 +191,24 @@ struct totals listdir(char *dirname, struct _info **dir, int lev, dev_t dev, boo
       if (!(flag.xdev && dev != (*dir)->dev) && (!(*dir)->lnk || ((*dir)->lnk && flag.l))) {
 	descend = 1;
 
-	if ((*dir)->lnk) {
-	  if (*(*dir)->lnk == '/') newpath = (*dir)->lnk;
-	  else {
-	    if (flag.f && !strcmp(dirname,"/")) sprintf(path,"%s%s",dirname,(*dir)->lnk);
-	    else sprintf(path,"%s/%s",dirname,(*dir)->lnk);
-	  }
-	  if (found) {
-	    err = "recursive, not followed";
-	    /* Not actually a problem if we weren't going to descend anyway: */
-	    if (Level >= 0 && lev > Level) err = NULL;
-	    descend = -1;
-	  }
+	// if ((*dir)->lnk) {
+	//   if (*(*dir)->lnk == '/') newpath = (*dir)->lnk;
+	//   else {
+	//     if (flag.f && !strcmp(dirname,"/")) sprintf(path,"%s%s",dirname,(*dir)->lnk);
+	//     else sprintf(path,"%s/%s",dirname,(*dir)->lnk);
+	//   }
+	//   if (found) {
+	//     err = "recursive, not followed";
+	//     /* Not actually a problem if we weren't going to descend anyway: */
+	//     if (Level >= 0 && lev > Level) err = NULL;
+	//     descend = -1;
+	//   }
+	// }
+	if ((*dir)->lnk && found) {
+	  err = "recursive, not followed";
+	  /* Not actually a problem if we weren't going to descend anyway: */
+	  if (Level >= 0 && lev > Level) err = NULL;
+	  descend = -1;
 	}
 
 	if ((Level >= 0) && (lev > Level)) {

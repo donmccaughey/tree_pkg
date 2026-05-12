@@ -1,11 +1,11 @@
-tree 2.3.1 for macOS
+tree 2.3.2 for macOS
 ====================
 
 This project builds a signed macOS universal installer package for [`tree`][1], 
 a recursive directory listing command. It contains the source distribution for 
-`tree` 2.3.1.
+`tree` 2.3.2.
 
-[1]: http://mama.indstate.edu/users/ice/tree/ "tree"
+[1]: https://gitlab.com/OldManProgrammer/unix-tree "tree"
 
 ## Prerequesites
 
@@ -49,7 +49,7 @@ To build and sign the executable and installer, run:
         $ make [APP_SIGNING_ID="<cert name 1>"] [INSTALLER_SIGNING_ID="<cert name 2>"] [TMP="<build dir>"]
 
 Intermediate files are generated in the temp directory; the signed installer 
-package is written into the project root with the name `tree-2.3.1.pkg`.
+package is written into the project root with the name `tree-2.3.2.pkg`.
 
 To notarize the signed installer package, run:
 
@@ -60,7 +60,7 @@ success.  Check the file `$(TMP)/notarization-log.json` for detailed
 information if notarization fails.  The signed installer is stapled in place
 if notarization succeeds.  Use the command:
 
-        $ xcrun stapler validate --verbose tree-2.3.1.pkg
+        $ xcrun stapler validate --verbose tree-2.3.2.pkg
 
 to check the notarization state of the installer package.
 

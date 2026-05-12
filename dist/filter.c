@@ -75,30 +75,33 @@ bool is_dir(const char *path)
 struct ignorefile *gitignore_search(const char *startpath, int depth)
 {
   struct ignorefile *pign = NULL, *ign = NULL;
-  char path[PATH_MAX+1], rpath[PATH_MAX+1];
+  char path[PATH_MAX+1];
 
-  if (realpath(startpath, rpath) == NULL) return NULL;
+  // strcpy(rpath, startpath);
 
   // Stop when we hit a directory with a .git directory. we'll assume it's the
   // git root:
-  snprintf(path, PATH_MAX, "%.*s/.git", PATH_MAX-6, rpath);
+  snprintf(path, PATH_MAX, "%.*s/.git", PATH_MAX-6, startpath);
   if (is_dir(path)) {
     // Add it's .git/config/exclude
-    snprintf(path, PATH_MAX, "%.*s/.git/info/exclude", PATH_MAX-21, rpath);
-    if (is_file(path)) push_filterstack(pign = new_ignorefile(path, false));
-  } else if (strcmp(rpath, "/") != 0 && depth < 2048) {
-    // Otherwise if we haven't reached /, then keep searching upward:
-    snprintf(path, PATH_MAX, "%.*s/..", PATH_MAX-4, rpath);
-    pign = gitignore_search(path, depth+1);
+    snprintf(path, PATH_MAX, "%.*s/.git/info/exclude", PATH_MAX-21, startpath);
+    if (is_file(path)) push_filterstack(pign = new_ignorefile(startpath, path, false));
+  } else {
+    if (realpath(startpath, path) == NULL) return NULL;
+    if (strcmp(path, "/") != 0 && depth < 2048) {
+      // Otherwise if we haven't reached /, then keep searching upward:
+      snprintf(path, PATH_MAX, "%.*s/..", PATH_MAX-4, startpath);
+      pign = gitignore_search(path, depth+1);
+    }
   }
 
-  snprintf(path, PATH_MAX, "%.*s/.gitignore", PATH_MAX-12, rpath);
-  if (is_file(path)) push_filterstack(ign = new_ignorefile(path, false));
+  snprintf(path, PATH_MAX, "%.*s/.gitignore", PATH_MAX-12, startpath);
+  if (is_file(path)) push_filterstack(ign = new_ignorefile(startpath, path, false));
 
   return ign == NULL? pign : ign;
 }
 
-struct ignorefile *new_ignorefile(const char *path, bool checkparents)
+struct ignorefile *new_ignorefile(const char *basepath, const char *path, bool checkparents)
 {
   char buf[PATH_MAX];
   struct ignorefile *ig;
@@ -124,6 +127,7 @@ struct ignorefile *new_ignorefile(const char *path, bool checkparents)
     gittrim(buf);
     if (strlen(buf) == 0) continue;
     p = new_pattern(buf + (rev? 1 : 0));
+    // printf("Adding pattern: %c%s\n", rev? '!' : ' ', buf);
     if (rev) {
       if (reverse == NULL) reverse = revend = p;
       else {
@@ -144,7 +148,7 @@ struct ignorefile *new_ignorefile(const char *path, bool checkparents)
   ig = xmalloc(sizeof(struct ignorefile));
   ig->remove = remove;
   ig->reverse = reverse;
-  ig->path = scopy(path);
+  ig->path = scopy(basepath);
   ig->next = NULL;
 
   return ig;
@@ -195,6 +199,8 @@ bool filtercheck(const char *path, const char *name, int isdir)
   struct ignorefile *ig;
   struct pattern *p;
 
+  // printf("Checking [%s / %s %d]\n", path, name, isdir);
+
   for(ig = filterstack; !filter && ig; ig = ig->next) {
     int fpos = sprintf(xpattern, "%s/", ig->path);
 
@@ -202,12 +208,14 @@ bool filtercheck(const char *path, const char *name, int isdir)
       if (p->relative) {
 	if (patmatch(name, p->pattern, isdir) == 1) {
 	  filter = true;
+	  // printf(" --r %s %s %d\n", name, p->pattern, filter);
 	  break;
 	}
       } else {
 	sprintf(xpattern + fpos, "%s", p->pattern);
 	if (patmatch(path, xpattern, isdir) == 1) {
 	  filter = true;
+	  // printf(" --a %s %s %d\n", name, xpattern, filter);
 	  break;
 	}
       }

@@ -22,7 +22,7 @@ PREFIX=/usr/local
 CC ?= gcc
 INSTALL ?= install
 
-VERSION=2.3.1
+VERSION=2.3.2
 TREE_DEST=tree
 #DESTDIR=${PREFIX}/bin
 MAN=tree.1
@@ -37,7 +37,8 @@ OBJS=color.o file.o filter.o hash.o html.o info.o json.o list.o tree.o unix.o \
 #LDFLAGS?=-s
 #CFLAGS?=-ggdb
 #CFLAGS?=-O3
-#CFLAGS+=-std=c11 -Wpedantic -Wall -Wextra -Wstrict-prototypes -Wshadow -Wconversion
+#CFLAGS+=-std=c11 -Wpedantic -Wall -Wextra -Wstrict-prototypes -Wshadow -Wconversion \
+#	-Wdiscarded-qualifiers
 # _LARGEFILE64_SOURCE may be considered obsolete
 #CPPFLAGS+=-DLARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64
 
@@ -81,7 +82,7 @@ MANDIR=$(DESTDIR)/$(PREFIX)/share/mem
 #CC=cc
 # manpage of mbsrtowcs() requires C99 and the two defines
 #CFLAGS+=+w -AC99
-#CPPFLAGS+=-D_XOPEN_SOURCE=500 -D_POSIX_C_SOURCE=200112 
+#CPPFLAGS+=-D_XOPEN_SOURCE=500 -D_POSIX_C_SOURCE=200112
 #LDFLAGS+=
 #MANDIR=${PREFIX}/share/man
 

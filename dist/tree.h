@@ -204,7 +204,7 @@ void gittrim(char *s);
 struct pattern *new_pattern(char *pattern);
 struct ignorefile *gitignore_search(const char *startpath, int depth);
 bool filtercheck(const char *path, const char *name, int isdir);
-struct ignorefile *new_ignorefile(const char *path, bool checkparents);
+struct ignorefile *new_ignorefile(const char *basepath, const char *path, bool checkparents);
 void push_filterstack(struct ignorefile *ig);
 struct ignorefile *pop_filterstack(void);
 struct ignorefile *flush_filterstack(void);
